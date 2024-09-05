@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Title</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="container">
+      <div id="app" class="info">
+        <div>UP: {{ counts.up }}</div>
+        <div>DOWN: {{ counts.down }}</div>
+        <div>LEFT: {{ counts.left }}</div>
+        <div>RIGHT: {{ counts.right }}</div>
+        <div style="flex-grow: 1"></div>
+        <div class="chat">
+          <div style="flex-grow: 1"></div>
+          <div v-for="(message, i) in processedMessages" :key="i" v-html="message"></div>
+        </div>
+      </div>
+      <div class="game">
+        <canvas id="canvas"></canvas>
+      </div>
+    </div>
+    <div class="assets">
+      <img src="assets/images/player.png" alt="" id="player_image" />
+      <img src="assets/images/room1.webp" alt="" id="room1_image" />
+    </div>
+    <script type="module" src="script.js"></script>
+  </body>
+</html>
