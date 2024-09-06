@@ -22,6 +22,10 @@ export default class Game {
   frameCount = 0;
   marginX = 160;
   marginY = 120;
+  fps = 0;
+  fpsHistory: number[] = [];
+  maxHistory = 10;
+  avgFps = 0;
 
   constructor(canvas: HTMLCanvasElement) {
     this.width = canvas.width;
@@ -54,6 +58,14 @@ export default class Game {
 
   render(ctx: CanvasRenderingContext2D, deltaTime: number) {
     this.frameCount++;
+    if (deltaTime > 0) {
+      this.fps = Math.round(1000 / deltaTime);
+      this.fpsHistory.push(this.fps);
+      if (this.fpsHistory.length > this.maxHistory) this.fpsHistory.shift();
+      const sumFps = this.fpsHistory.reduce((sum, fps) => sum + fps, 0);
+      this.avgFps = this.fpsHistory.length ? Math.round(sumFps / this.fpsHistory.length) : 0;
+    }
+
     this.draw(ctx);
     this.update(deltaTime);
   }
@@ -66,6 +78,9 @@ export default class Game {
     if (this.debug) {
       ctx.strokeStyle = 'red';
       ctx.strokeRect(this.marginX, this.marginY, this.width - this.marginX * 2, this.height - this.marginY * 2);
+      ctx.fillStyle = 'red';
+      ctx.font = '20px Impact';
+      ctx.fillText(this.avgFps.toString(), 3, 20);
     }
   }
 
