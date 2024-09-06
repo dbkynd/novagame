@@ -7,8 +7,14 @@ export default class Player {
   width = 100;
   height = 100;
   direction: Direction | null = null;
-  speed = 100;
+  speed = 200;
   image = document.getElementById('player_image') as HTMLImageElement;
+  spriteWidth = 64;
+  spriteHeight = 64;
+  frameY = 0;
+  maxFrames = 6;
+  staggerFrames = 10;
+  margin = 15;
 
   constructor(game: Game) {
     this.game = game;
@@ -17,10 +23,26 @@ export default class Player {
   }
 
   draw(ctx: CanvasRenderingContext2D) {
-    ctx.strokeStyle = 'blue';
-    ctx.strokeRect(this.x, this.y, this.width, this.height);
-    ctx.strokeRect(this.x, this.y, this.width, this.height);
-    // ctx.drawImage(this.image, this.x, this.y, this.width, this.height);
+    if (!this.game.hideImages) {
+      let frameX = Math.floor(this.game.frameCount / this.staggerFrames) % this.maxFrames;
+      if (this.frameY === 0) frameX = 0;
+      ctx.drawImage(
+        this.image,
+        frameX * this.spriteWidth + this.margin,
+        this.frameY * this.spriteHeight + this.margin,
+        this.spriteWidth - this.margin * 2,
+        this.spriteHeight - this.margin * 2,
+        this.x,
+        this.y,
+        this.width,
+        this.height,
+      );
+    }
+
+    if (this.game.debug) {
+      ctx.strokeStyle = 'blue';
+      ctx.strokeRect(this.x, this.y, this.width, this.height);
+    }
   }
 
   update(deltaTime: number) {
@@ -28,22 +50,27 @@ export default class Player {
       case 'up':
         this.vx = 0;
         this.vy = -1;
+        this.frameY = 5;
         break;
       case 'down':
         this.vx = 0;
         this.vy = 1;
+        this.frameY = 4;
         break;
       case 'left':
         this.vx = -1;
         this.vy = 0;
+        this.frameY = 7;
         break;
       case 'right':
         this.vx = 1;
         this.vy = 0;
+        this.frameY = 6;
         break;
       default:
         this.vx = 0;
         this.vy = 0;
+        this.frameY = 0;
     }
 
     this.x += (this.vx * this.speed * deltaTime) / 1000;
@@ -59,6 +86,11 @@ export default class Player {
   }
 
   hitWall(): boolean {
-    return this.x < 0 || this.x > this.game.width - this.width || this.y < 0 || this.y > this.game.height - this.height;
+    return (
+      this.x < this.game.marginX ||
+      this.x > this.game.width - this.width - this.game.marginX ||
+      this.y < this.game.marginY ||
+      this.y > this.game.height - this.height - this.game.marginY
+    );
   }
 }

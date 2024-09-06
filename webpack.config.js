@@ -29,7 +29,7 @@ module.exports = {
   plugins: [
     new HtmlWebpackPlugin({
       // title: 'our project',
-      template: 'index.html',
+      template: './src/index.html',
       minify: {
         collapseWhitespace: true,
         removeComments: true,
