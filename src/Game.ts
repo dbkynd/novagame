@@ -26,6 +26,7 @@ export default class Game {
   fpsHistory: number[] = [];
   maxHistory = 10;
   avgFps = 0;
+  lastUpdatedDirection: Direction | null = null;
 
   constructor(canvas: HTMLCanvasElement) {
     this.width = canvas.width;
@@ -113,13 +114,33 @@ export default class Game {
   makeDecision() {
     const countsArray = Object.entries(this.counts) as [Direction, number][];
     const maxCount = Math.max(...countsArray.map(([_, count]) => count));
-    const topDirections = countsArray.filter(([_, count]) => count === maxCount).map(([direction]) => direction);
-    this.player.direction = topDirections[Math.floor(Math.random() * topDirections.length)];
+
+    if (maxCount === 0) {
+      // If no directions were updated, choose a random direction
+      this.player.direction = countsArray[Math.floor(Math.random() * countsArray.length)][0];
+    } else {
+      // Filter directions with the highest count
+      const topDirections = countsArray.filter(([_, count]) => count === maxCount).map(([direction]) => direction);
+
+      // If only one direction has the highest count, choose that
+      if (topDirections.length === 1) {
+        this.player.direction = topDirections[0];
+      } else {
+        // If multiple directions have the highest count, prioritize the last updated one
+        if (this.lastUpdatedDirection && topDirections.includes(this.lastUpdatedDirection)) {
+          this.player.direction = this.lastUpdatedDirection;
+        } else {
+          // If the last updated direction is not among the top ones, choose randomly from the top directions
+          this.player.direction = topDirections[Math.floor(Math.random() * topDirections.length)];
+        }
+      }
+    }
   }
 
   addCount(direction: Direction) {
     if (direction in this.counts) {
       this.counts[direction]++;
+      this.lastUpdatedDirection = direction;
     }
   }
 }
