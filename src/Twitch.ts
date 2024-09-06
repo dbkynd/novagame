@@ -26,7 +26,7 @@ export default class Twitch {
       const chat: Chat = {
         tags,
         message,
-        accepted: !userEntered,
+        accepted: !userEntered && this.game.doCountdown,
       };
 
       this.chats.value.push(chat);
