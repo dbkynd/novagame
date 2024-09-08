@@ -1,14 +1,17 @@
 import Twitch from './Twitch';
 import Player from './Player';
 import { reactive } from 'vue';
+import { BasicRoom, BathRoom, Room } from './Rooms';
+import GUI from './GUI';
 
 export default class Game {
   debug = true;
-  hideImages = true;
+  hideImages = false;
   width: number;
   height: number;
   twitch: Twitch;
   player: Player;
+  GUI: GUI;
   counts = reactive({
     up: 0,
     down: 0,
@@ -18,7 +21,6 @@ export default class Game {
   roundLength = 5000;
   countdown = this.roundLength;
   doCountdown = true;
-  room = document.getElementById('room_image') as HTMLImageElement;
   frameCount = 0;
   marginX = 160;
   marginY = 120;
@@ -27,12 +29,15 @@ export default class Game {
   maxHistory = 10;
   avgFps = 0;
   lastUpdatedDirection: Direction | null = null;
+  room: Room;
 
   constructor(canvas: HTMLCanvasElement) {
     this.width = canvas.width;
     this.height = canvas.height;
     this.twitch = new Twitch(this);
     this.player = new Player(this);
+    this.GUI = new GUI(this);
+    this.room = new BathRoom(this, ['right', 'down', 'left', 'up']);
 
     this.addListeners();
     this.startRound();
@@ -73,16 +78,9 @@ export default class Game {
 
   draw(ctx: CanvasRenderingContext2D) {
     ctx.clearRect(0, 0, this.width, this.height);
-    if (!this.hideImages) ctx.drawImage(this.room, 0, 0, this.width, this.height);
+    this.room.draw(ctx);
     this.player.draw(ctx);
-
-    if (this.debug) {
-      ctx.strokeStyle = 'red';
-      ctx.strokeRect(this.marginX, this.marginY, this.width - this.marginX * 2, this.height - this.marginY * 2);
-      ctx.fillStyle = 'red';
-      ctx.font = '20px Impact';
-      ctx.fillText(this.avgFps.toString(), 3, 20);
-    }
+    this.GUI.draw(ctx);
   }
 
   update(deltaTime: number) {
