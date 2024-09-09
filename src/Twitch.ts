@@ -1,5 +1,6 @@
 import tmi, { Client } from 'tmi.js';
 import { ref } from 'vue';
+import type Game from './Game';
 
 export default class Twitch {
   game: Game;
@@ -47,7 +48,7 @@ export default class Twitch {
       if (accepted) this.acceptedEntryUserIds.push(id);
 
       // Add chat
-      const chat: Chat = { tags, message, accepted };
+      const chat: Chat = { message, accepted };
       this.chats.value.push(chat);
       if (this.chats.value.length > this.maxChats) this.chats.value.shift();
     });

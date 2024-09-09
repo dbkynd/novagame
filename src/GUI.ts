@@ -1,4 +1,4 @@
-import Game from './Game';
+import type Game from './Game';
 
 export default class GUI {
   game: Game;

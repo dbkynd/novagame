@@ -1,4 +1,5 @@
 import { BasicRoom, GoalRoom, Room } from './Rooms';
+import type Game from './Game';
 
 export default class Grid {
   game: Game;

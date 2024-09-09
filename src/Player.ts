@@ -1,3 +1,5 @@
+import type Game from './Game';
+
 export default class Player {
   game: Game;
   x: number;

@@ -1,3 +1,5 @@
+import type Game from './Game';
+
 export abstract class Room {
   game: Game;
   abstract name: string;
@@ -69,7 +71,7 @@ export class BasicRoom extends Room {
 export class GoalRoom extends Room {
   name = 'goal_room';
   image = new Image();
-  color = '#FFD700';
+  override color = '#FFD700';
 
   constructor(game: Game, x: number, y: number) {
     super(game, x, y);
@@ -85,7 +87,7 @@ export class GoalRoom extends Room {
 export class BathRoom extends Room {
   name = 'bath_room';
   image = new Image();
-  color = '#000000';
+  override color = '#000000';
 
   constructor(game: Game, x: number, y: number) {
     super(game, x, y);
