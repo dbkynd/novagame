@@ -52,9 +52,7 @@ export abstract class Room {
     }
   }
 
-  hasDoor(direction: Direction): boolean {
-    return this.doors[direction];
-  }
+  abstract onEnter(): void;
 }
 
 export class BasicRoom extends Room {
@@ -64,6 +62,8 @@ export class BasicRoom extends Room {
   constructor(game: Game, x: number, y: number) {
     super(game, x, y);
   }
+
+  onEnter() {}
 }
 
 export class GoalRoom extends Room {
@@ -73,6 +73,12 @@ export class GoalRoom extends Room {
 
   constructor(game: Game, x: number, y: number) {
     super(game, x, y);
+  }
+
+  onEnter() {
+    const sound = document.getElementById('cheer_sound') as HTMLAudioElement;
+    sound.volume = 0.4;
+    sound.play();
   }
 }
 
@@ -84,4 +90,6 @@ export class BathRoom extends Room {
   constructor(game: Game, x: number, y: number) {
     super(game, x, y);
   }
+
+  onEnter() {}
 }

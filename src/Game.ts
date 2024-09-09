@@ -176,7 +176,7 @@ export default class Game {
     const nextRoom = this.grid.getAdjacentRoom(this.grid.playerRoom.x, this.grid.playerRoom.y, this.player.direction);
     if (!nextRoom) return;
     this.grid.playerRoom = nextRoom;
-    this.moves.value++;
+    this.grid.playerRoom.onEnter();
     this.startRound();
   }
 }
