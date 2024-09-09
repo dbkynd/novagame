@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>Title</title>
+    <title>Nova Game</title>
     <link rel="icon" href="favicon.ico" type="image/x-icon" />
     <link rel="stylesheet" href="style.css" />
   </head>
@@ -10,21 +10,19 @@
     <div class="container">
       <div id="app" v-cloak class="info">
         <div>
-          <div>
-            <div>UP: {{ counts.up }}</div>
-            <div>DOWN: {{ counts.down }}</div>
-            <div>LEFT: {{ counts.left }}</div>
-            <div>RIGHT: {{ counts.right }}</div>
-            <div>MOVES: {{ moves }}</div>
-          </div>
-
           <div class="connect" :class="{connected}">{{ connectionText }}</div>
+          <div>UP: {{ counts.up }}</div>
+          <div>DOWN: {{ counts.down }}</div>
+          <div>LEFT: {{ counts.left }}</div>
+          <div>RIGHT: {{ counts.right }}</div>
+          <div>MOVES: {{ moves }}</div>
         </div>
 
         <div class="chat">
           <div v-for="(message, i) in processedMessages" :key="i" v-html="message"></div>
         </div>
       </div>
+
       <div class="game">
         <canvas id="canvas"></canvas>
       </div>
@@ -34,7 +32,8 @@
       <img src="assets/images/room.png" alt="" id="room_image" />
       <img src="assets/images/cat_icon.png" alt="" id="cat_icon_image" />
       <img src="assets/images/treats_icon.png" alt="" id="treats_icon_image" />
+      <audio src="assets/sounds/cheer.mp3" id="cheer_sound"></audio>
     </div>
-    <script type="module" src="script.js"></script>
   </body>
+  <script defer type="module" src="script.js"></script>
 </html>

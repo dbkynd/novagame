@@ -31,6 +31,7 @@
   flex-direction: column;
   justify-content: flex-end;
   overflow-y: hidden;
+  border-top: 1px solid black;
 }
 
 .chat > div:nth-child(even) {
@@ -49,23 +50,10 @@
   display: none;
 }
 
-.info > div {
-  display: flex;
-  flex-direction: column;
-  align-content: revert;
-  justify-content: space-between;
-  height: 100%;
-  flex-grow: 1;
-}
-
 .connect {
   background: #cc2424;
 }
 
 .connect.connected {
   background: #4bcb4b;
-}
-
-.v-spacer {
-  flex-grow: 1;
 }
