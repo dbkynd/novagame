@@ -192,21 +192,24 @@ export default class Grid {
   }
 
   update() {
-    if (this.playerRoom === this.goalRoom) {
-      this.game.player.reset();
-      this.game.gameOver = true;
-    }
-
+    // Map visibility
     if (this.playerRoom) {
       this.playerRoom.visited = true;
+      // "discover" adjacent rooms that have doors
       const up = this.getAdjacentRoom(this.playerRoom.x, this.playerRoom.y, 'up');
       const down = this.getAdjacentRoom(this.playerRoom.x, this.playerRoom.y, 'down');
       const left = this.getAdjacentRoom(this.playerRoom.x, this.playerRoom.y, 'left');
       const right = this.getAdjacentRoom(this.playerRoom.x, this.playerRoom.y, 'right');
-      if (up) up.discovered = true;
-      if (down) down.discovered = true;
-      if (left) left.discovered = true;
-      if (right) right.discovered = true;
+      if (this.playerRoom.doors.up && up) up.discovered = true;
+      if (this.playerRoom.doors.down && down) down.discovered = true;
+      if (this.playerRoom.doors.left && left) left.discovered = true;
+      if (this.playerRoom.doors.right && right) right.discovered = true;
+    }
+
+    // Game over if player reached goal room
+    if (this.playerRoom === this.goalRoom) {
+      this.game.player.reset();
+      this.game.gameOver = true;
     }
   }
 }
