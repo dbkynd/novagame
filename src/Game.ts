@@ -1,35 +1,41 @@
 import Twitch from './Twitch';
 import Player from './Player';
-import { reactive } from 'vue';
-import { BasicRoom, BathRoom, Room } from './Rooms';
+import { reactive, ref } from 'vue';
 import GUI from './GUI';
+import Grid from './Grid';
 
 export default class Game {
-  debug = true;
-  hideImages = false;
+  debug = false;
   width: number;
   height: number;
   twitch: Twitch;
   player: Player;
   GUI: GUI;
+  grid: Grid;
+  gameOver = false;
+
   counts = reactive({
     up: 0,
     down: 0,
     left: 0,
     right: 0,
   });
-  roundLength = 5000;
+
+  marginX = 160; // X-axis margin for player collision with game edge
+  marginY = 120; // Y-axis margin for player collision with game edge
+
+  moves = ref(0);
+  roundLength = 50;
   countdown = this.roundLength;
   doCountdown = true;
-  frameCount = 0;
-  marginX = 160;
-  marginY = 120;
+
   fps = 0;
   fpsHistory: number[] = [];
   maxHistory = 10;
   avgFps = 0;
+  frameCount = 0;
+
   lastUpdatedDirection: Direction | null = null;
-  room: Room;
 
   constructor(canvas: HTMLCanvasElement) {
     this.width = canvas.width;
@@ -37,7 +43,7 @@ export default class Game {
     this.twitch = new Twitch(this);
     this.player = new Player(this);
     this.GUI = new GUI(this);
-    this.room = new BathRoom(this, ['right', 'down', 'left', 'up']);
+    this.grid = new Grid(this);
 
     this.addListeners();
     this.startRound();
@@ -48,15 +54,12 @@ export default class Game {
       // Use the 'd' key to toggle debug mode
       if (key === 'd') this.debug = !this.debug;
 
-      // Use the arrow keys in debug mode to manually add to the direction counts
+      // Use the arrow keys in debug mode to manually add to the direction counters
       if (this.debug) {
         const regex = /^Arrow(Up|Down|Left|Right)$/;
         if (regex.test(key)) {
           const match = key.match(regex);
-          if (match) {
-            const direction = match[1].toLowerCase() as Direction;
-            this.addCount(direction);
-          }
+          if (match) this.addCount(match[1].toLowerCase() as Direction);
         }
       }
     });
@@ -64,6 +67,8 @@ export default class Game {
 
   render(ctx: CanvasRenderingContext2D, deltaTime: number) {
     this.frameCount++;
+
+    // Average FPS calculations
     if (deltaTime > 0) {
       this.fps = Math.round(1000 / deltaTime);
       this.fpsHistory.push(this.fps);
@@ -78,19 +83,30 @@ export default class Game {
 
   draw(ctx: CanvasRenderingContext2D) {
     ctx.clearRect(0, 0, this.width, this.height);
-    this.room.draw(ctx);
+    this.grid.playerRoom?.draw(ctx);
     this.player.draw(ctx);
     this.GUI.draw(ctx);
+    if (this.gameOver) {
+      ctx.save();
+      ctx.font = '50px Impact';
+      ctx.fillStyle = '#ff0000';
+      ctx.textAlign = 'center';
+      ctx.fillText('GAME OVER', this.width * 0.5, this.height * 0.5);
+      ctx.restore();
+    }
   }
 
   update(deltaTime: number) {
+    if (this.gameOver) return;
+
+    this.grid.update();
     this.player.update(deltaTime);
 
     if (this.doCountdown) {
       this.countdown -= deltaTime;
       if (this.countdown <= 0) {
         this.doCountdown = false;
-        this.makeDecision();
+        this.chooseDirection();
       }
     }
   }
@@ -109,13 +125,25 @@ export default class Game {
     }
   }
 
-  makeDecision() {
-    const countsArray = Object.entries(this.counts) as [Direction, number][];
+  chooseDirection() {
+    // Get the available directions with doors
+    const availableDirections = Object.entries(this.grid.playerRoom!.doors)
+      .filter(([_, hasDoor]) => hasDoor)
+      .map(([direction]) => direction as Direction);
+
+    // If no doors are available (edge case), do nothing
+    if (availableDirections.length === 0) return;
+
+    // Get counts only for the available directions
+    const countsArray = Object.entries(this.counts).filter(([direction]) =>
+      availableDirections.includes(direction as Direction),
+    ) as [Direction, number][];
+
     const maxCount = Math.max(...countsArray.map(([_, count]) => count));
 
     if (maxCount === 0) {
-      // If no directions were updated, choose a random direction
-      this.player.direction = countsArray[Math.floor(Math.random() * countsArray.length)][0];
+      // If no directions were updated, choose a random direction from available directions
+      this.player.direction = availableDirections[Math.floor(Math.random() * availableDirections.length)];
     } else {
       // Filter directions with the highest count
       const topDirections = countsArray.filter(([_, count]) => count === maxCount).map(([direction]) => direction);
@@ -136,9 +164,19 @@ export default class Game {
   }
 
   addCount(direction: Direction) {
-    if (direction in this.counts) {
+    if (this.gameOver || !this.grid.playerRoom) return;
+    if (this.grid.playerRoom.doors[direction]) {
       this.counts[direction]++;
       this.lastUpdatedDirection = direction;
     }
+  }
+
+  nextRound() {
+    if (!this.grid.playerRoom || !this.player.direction) return;
+    const nextRoom = this.grid.getAdjacentRoom(this.grid.playerRoom.x, this.grid.playerRoom.y, this.player.direction);
+    if (!nextRoom) return;
+    this.grid.playerRoom = nextRoom;
+    this.moves.value++;
+    this.startRound();
   }
 }

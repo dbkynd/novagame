@@ -2,24 +2,32 @@ export abstract class Room {
   game: Game;
   abstract name: string;
   abstract image: HTMLImageElement;
+  x: number; // Grid X position
+  y: number; // Grid Y position
   doors: Record<Direction, boolean>;
+  color = '#f8f8f8'; // Map background color
+  discovered = false; // Player has seen this room's door
+  visited = false; // Player has visited this room
 
-  protected constructor(game: Game, doors: Direction[]) {
+  protected constructor(game: Game, x: number, y: number) {
     this.game = game;
+    this.x = x;
+    this.y = y;
     this.doors = {
-      up: doors.includes('up'),
-      down: doors.includes('down'),
-      left: doors.includes('left'),
-      right: doors.includes('right'),
+      up: false,
+      down: false,
+      left: false,
+      right: false,
     };
   }
 
   draw(ctx: CanvasRenderingContext2D) {
     // Room image
-    if (!this.game.hideImages) ctx.drawImage(this.image, 0, 0, this.game.width, this.game.height);
 
-    // Yellow bars to show doorways
-    if (this.game.debug) {
+    if (!this.game.debug) {
+      ctx.drawImage(this.image, 0, 0, this.game.width, this.game.height);
+    } else {
+      // Yellow bars to show doorways
       ctx.fillStyle = 'yellow';
       const barLength = 200;
       const barWidth = 10;
@@ -53,25 +61,27 @@ export class BasicRoom extends Room {
   name = 'basic_room';
   image = document.getElementById('room_image') as HTMLImageElement;
 
-  constructor(game: Game, doors: Direction[]) {
-    super(game, doors);
+  constructor(game: Game, x: number, y: number) {
+    super(game, x, y);
   }
 }
 
 export class GoalRoom extends Room {
   name = 'goal_room';
   image = new Image();
+  color = '#FFD700';
 
-  constructor(game: Game, doors: Direction[]) {
-    super(game, doors);
+  constructor(game: Game, x: number, y: number) {
+    super(game, x, y);
   }
 }
 
 export class BathRoom extends Room {
   name = 'bath_room';
   image = new Image();
+  color = '#000000';
 
-  constructor(game: Game, doors: Direction[]) {
-    super(game, doors);
+  constructor(game: Game, x: number, y: number) {
+    super(game, x, y);
   }
 }

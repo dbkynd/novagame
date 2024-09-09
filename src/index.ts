@@ -24,7 +24,7 @@ window.addEventListener('load', () => {
   animate();
 });
 
-// Vue
+// Vue Component
 createApp({
   setup() {
     const highlightWords = (chat: Chat) => {
@@ -37,9 +37,16 @@ createApp({
       return game.twitch.chats.value.map((chat) => highlightWords(chat));
     });
 
+    const connectionText = computed(() => {
+      return game.twitch.connected.value ? 'Connected' : 'Connecting...';
+    });
+
     return {
       counts: game.counts,
+      moves: game.moves,
       processedMessages,
+      connected: game.twitch.connected,
+      connectionText,
     };
   },
 }).mount('#app');

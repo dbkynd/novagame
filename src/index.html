@@ -8,13 +8,19 @@
   </head>
   <body>
     <div class="container">
-      <div id="app" class="info">
+      <div id="app" v-cloak class="info">
         <div>
-          <div>UP: {{ counts.up }}</div>
-          <div>DOWN: {{ counts.down }}</div>
-          <div>LEFT: {{ counts.left }}</div>
-          <div>RIGHT: {{ counts.right }}</div>
+          <div>
+            <div>UP: {{ counts.up }}</div>
+            <div>DOWN: {{ counts.down }}</div>
+            <div>LEFT: {{ counts.left }}</div>
+            <div>RIGHT: {{ counts.right }}</div>
+            <div>MOVES: {{ moves }}</div>
+          </div>
+
+          <div class="connect" :class="{connected}">{{ connectionText }}</div>
         </div>
+
         <div class="chat">
           <div v-for="(message, i) in processedMessages" :key="i" v-html="message"></div>
         </div>
@@ -26,6 +32,8 @@
     <div class="assets">
       <img src="assets/images/player.png" alt="" id="player_image" />
       <img src="assets/images/room.png" alt="" id="room_image" />
+      <img src="assets/images/cat_icon.png" alt="" id="cat_icon_image" />
+      <img src="assets/images/treats_icon.png" alt="" id="treats_icon_image" />
     </div>
     <script type="module" src="script.js"></script>
   </body>

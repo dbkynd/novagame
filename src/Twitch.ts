@@ -5,9 +5,10 @@ export default class Twitch {
   game: Game;
   client: Client;
   chats = ref<Chat[]>([]);
-  roundEntryUserIds: string[] = [];
-  maxChats = 50;
+  acceptedEntryUserIds: string[] = [];
+  maxChats = 20;
   directionRegex = /\b(up|down|left|right)\b/i;
+  connected = ref(false);
 
   constructor(game: Game) {
     this.game = game;
@@ -17,27 +18,42 @@ export default class Twitch {
 
     this.client.connect();
 
+    this.client.on('connected', () => {
+      this.connected.value = true;
+    });
+
+    this.client.on('disconnected', () => {
+      this.connected.value = false;
+    });
+
     this.client.on('message', (channel, tags, message, self) => {
       const id = tags['user-id'];
       if (!id) return;
-      const userEntered = this.roundEntryUserIds.includes(id);
-      this.roundEntryUserIds.push(id);
 
-      const chat: Chat = {
-        tags,
-        message,
-        accepted: !userEntered && this.game.doCountdown,
-      };
-
-      this.chats.value.push(chat);
-      if (this.chats.value.length > this.maxChats) this.chats.value.shift();
+      // "accepted" is if the chat message is included in the decision-making of this game round or not
+      let accepted = !this.game.gameOver && this.game.doCountdown && !this.acceptedEntryUserIds.includes(id);
 
       const match = message.match(this.directionRegex);
-      if (match) this.game.addCount(match[1].toLowerCase() as Direction);
+      if (match) {
+        const direction = match[1].toLowerCase() as Direction;
+        if (this.game.grid.playerRoom?.doors[direction]) {
+          this.game.addCount(direction);
+        } else {
+          accepted = false; // Set accepted to false if there is no door in that direction
+        }
+      }
+
+      // Ignore further chats from those that have an accepted entry
+      if (accepted) this.acceptedEntryUserIds.push(id);
+
+      // Add chat
+      const chat: Chat = { tags, message, accepted };
+      this.chats.value.push(chat);
+      if (this.chats.value.length > this.maxChats) this.chats.value.shift();
     });
   }
 
   reset() {
-    this.roundEntryUserIds = [];
+    this.acceptedEntryUserIds = [];
   }
 }

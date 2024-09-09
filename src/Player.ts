@@ -7,14 +7,14 @@ export default class Player {
   width = 100;
   height = 100;
   direction: Direction | null = null;
-  speed = 200;
-  image = document.getElementById('player_image') as HTMLImageElement;
-  spriteWidth = 64;
-  spriteHeight = 64;
+  speed = 1000;
+  image = document.getElementById('cat_icon_image') as HTMLImageElement;
+  spriteWidth = 112;
+  spriteHeight = 112;
   frameY = 0;
   maxFrames = 6;
   staggerFrames = 10;
-  margin = 15;
+  margin = 0;
 
   constructor(game: Game) {
     this.game = game;
@@ -23,9 +23,9 @@ export default class Player {
   }
 
   draw(ctx: CanvasRenderingContext2D) {
-    if (!this.game.hideImages) {
-      let frameX = Math.floor(this.game.frameCount / this.staggerFrames) % this.maxFrames;
-      if (this.frameY === 0) frameX = 0;
+    let frameX = Math.floor(this.game.frameCount / this.staggerFrames) % this.maxFrames;
+    if (this.frameY === 0) frameX = 0;
+    if (!this.game.debug) {
       ctx.drawImage(
         this.image,
         frameX * this.spriteWidth + this.margin,
@@ -37,9 +37,7 @@ export default class Player {
         this.width,
         this.height,
       );
-    }
-
-    if (this.game.debug) {
+    } else {
       ctx.strokeStyle = 'blue';
       ctx.strokeRect(this.x, this.y, this.width, this.height);
     }
@@ -50,22 +48,22 @@ export default class Player {
       case 'up':
         this.vx = 0;
         this.vy = -1;
-        this.frameY = 5;
+        this.frameY = 0;
         break;
       case 'down':
         this.vx = 0;
         this.vy = 1;
-        this.frameY = 4;
+        this.frameY = 0;
         break;
       case 'left':
         this.vx = -1;
         this.vy = 0;
-        this.frameY = 7;
+        this.frameY = 0;
         break;
       case 'right':
         this.vx = 1;
         this.vy = 0;
-        this.frameY = 6;
+        this.frameY = 0;
         break;
       default:
         this.vx = 0;
@@ -76,12 +74,13 @@ export default class Player {
     this.x += (this.vx * this.speed * deltaTime) / 1000;
     this.y += (this.vy * this.speed * deltaTime) / 1000;
 
-    if (this.hitWall()) this.game.startRound();
+    if (this.hitWall()) this.game.nextRound();
   }
 
   reset() {
     this.x = this.game.width * 0.5 - this.width * 0.5;
     this.y = this.game.height * 0.5 - this.height * 0.5;
+    this.frameY = 0;
     this.direction = null;
   }
 
