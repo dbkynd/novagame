@@ -24,8 +24,8 @@ export default class Game {
   marginX = 160; // X-axis margin for player collision with game edge
   marginY = 120; // Y-axis margin for player collision with game edge
 
-  moves = ref(0);
-  roundLength = 50;
+  moves = ref(12);
+  roundLength = 10000;
   countdown = this.roundLength;
   doCountdown = true;
 
@@ -177,6 +177,8 @@ export default class Game {
     if (!nextRoom) return;
     this.grid.playerRoom = nextRoom;
     this.grid.playerRoom.onEnter();
+    this.moves.value--;
+    if (this.moves.value <= 0) this.gameOver = true;
     this.startRound();
   }
 }
