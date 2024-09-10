@@ -44,6 +44,8 @@ createApp({
     return {
       votes: game.votes,
       moves: game.moves,
+      wins: game.wins,
+      loses: game.loses,
       processedMessages,
       connected: game.twitch.connected,
       connectionText,

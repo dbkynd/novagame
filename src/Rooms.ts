@@ -78,6 +78,7 @@ export class GoalRoom extends Room {
   }
 
   onPlayerEnter() {
+    this.game.wins.value++;
     const sound = document.getElementById('cheer_sound') as HTMLAudioElement;
     this.game.playSound(sound);
   }

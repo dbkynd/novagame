@@ -12,6 +12,8 @@ export default class Game {
   player: Player;
   map: Map;
   GUI: GUI;
+  wins = ref(0);
+  loses = ref(0);
   gameOver = false;
   votes: Record<Direction, number>;
   lastUpdatedVote: Direction | null = null;
@@ -21,11 +23,11 @@ export default class Game {
 
   maxMoves = 10;
   moves = ref(this.maxMoves);
-  roundLength = 10000;
-  countdown = this.roundLength;
+  roundDuration = 1000; // Duration of voting round
+  countdown = this.roundDuration;
   doCountdown = false;
   resetTimer = 0;
-  resetDuration = 3000;
+  resetDuration = 3000; // How long after game over does the game restart
 
   fps = 0;
   fpsHistory: number[] = [];
@@ -118,7 +120,7 @@ export default class Game {
     this.twitch.reset();
     this.player.reset();
     this.resetCounts();
-    this.countdown = this.roundLength;
+    this.countdown = this.roundDuration;
     this.doCountdown = true;
   }
 
@@ -128,7 +130,10 @@ export default class Game {
     const nextRoom = this.map.getAdjacentRoom(this.map.playerRoom.x, this.map.playerRoom.y, this.player.direction);
     if (!nextRoom) return; // Edge case - We should only be getting directions to a valid room we can move to
     this.moves.value--;
-    if (this.moves.value <= 0) this.gameOver = true;
+    if (this.moves.value <= 0) {
+      this.loses.value++;
+      this.gameOver = true;
+    }
     this.map.playerRoom = nextRoom;
     this.map.playerRoom.onPlayerEnter();
     this.startRound();
