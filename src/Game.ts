@@ -23,11 +23,11 @@ export default class Game {
 
   maxMoves = 10;
   moves = ref(this.maxMoves);
-  roundDuration = 1000; // Duration of voting round
+  roundDuration = 10000; // Duration of voting rounds
   countdown = this.roundDuration;
   doCountdown = false;
   resetTimer = 0;
-  resetDuration = 3000; // How long after game over does the game restart
+  resetDuration = 5000; // How long after game over does the game restart
 
   fps = 0;
   fpsHistory: number[] = [];
