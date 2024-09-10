@@ -130,10 +130,7 @@ export default class Game {
     const nextRoom = this.map.getAdjacentRoom(this.map.playerRoom.x, this.map.playerRoom.y, this.player.direction);
     if (!nextRoom) return; // Edge case - We should only be getting directions to a valid room we can move to
     this.moves.value--;
-    if (this.moves.value <= 0) {
-      this.loses.value++;
-      this.gameOver = true;
-    }
+    if (this.moves.value <= 0) this.loseGame();
     this.map.playerRoom = nextRoom;
     this.map.playerRoom.onPlayerEnter();
     this.startRound();
@@ -220,5 +217,16 @@ export default class Game {
     clone.play().catch(() => {
       // Do nothing
     });
+  }
+
+  winGame() {
+    this.wins.value++;
+    const sound = document.getElementById('cheer_sound') as HTMLAudioElement;
+    this.playSound(sound);
+  }
+
+  loseGame() {
+    this.loses.value++;
+    this.gameOver = true;
   }
 }

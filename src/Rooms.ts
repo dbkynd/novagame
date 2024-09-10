@@ -7,9 +7,11 @@ export abstract class Room {
   x: number; // Map grid X position
   y: number; // Map grid Y position
   doors: Record<Direction, boolean>;
-  color = '#f8f8f8'; // Map background color
   discovered = false; // Player has seen this room's door
   visited = false; // Player has visited this room
+  undiscoveredColor = '#8d8d8d'; // Map background colors
+  discoveredColor = '#c9c9c9';
+  visitedColor = '#f8f8f8';
 
   protected constructor(game: Game, x: number, y: number) {
     this.game = game;
@@ -21,6 +23,13 @@ export abstract class Room {
       left: false,
       right: false,
     };
+  }
+
+  get color(): string {
+    let color = this.undiscoveredColor;
+    if (this.discovered) color = this.discoveredColor;
+    if (this.visited) color = this.visitedColor;
+    return color;
   }
 
   draw(ctx: CanvasRenderingContext2D) {
@@ -71,23 +80,19 @@ export class BasicRoom extends Room {
 export class GoalRoom extends Room {
   name = 'goal_room';
   image = new Image();
-  override color = '#FFD700';
 
   constructor(game: Game, x: number, y: number) {
     super(game, x, y);
   }
 
   onPlayerEnter() {
-    this.game.wins.value++;
-    const sound = document.getElementById('cheer_sound') as HTMLAudioElement;
-    this.game.playSound(sound);
+    this.game.winGame();
   }
 }
 
 export class BathRoom extends Room {
   name = 'bath_room';
   image = new Image();
-  override color = '#000000';
 
   constructor(game: Game, x: number, y: number) {
     super(game, x, y);

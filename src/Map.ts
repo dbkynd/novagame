@@ -1,5 +1,5 @@
-import { BasicRoom, GoalRoom, Room } from './Rooms';
 import type Game from './Game';
+import { BasicRoom, GoalRoom, Room } from './Rooms';
 
 export default class Map {
   game: Game;
@@ -7,18 +7,21 @@ export default class Map {
   gridSizeX = 4;
   gridSizeY = 4;
   playerRoom: Room | null = null;
+  playerRoomColor = '#44eadc';
   goalRoom: GoalRoom | null = null;
+  minGoalDistance = 3;
+  maxGoalDistance = 4;
   mapCanvas: HTMLCanvasElement | null = null;
   mapCtx: CanvasRenderingContext2D | null = null;
 
   constructor(game: Game) {
     this.game = game;
-    if (this.gridSizeX < 4) throw new Error('The gridSizeX must be more than 4');
-    if (this.gridSizeY < 3) throw new Error('The gridSizeY must be more than 3');
+    if (this.gridSizeX < 4) throw new Error('The gridSizeX must be 4 or more');
+    if (this.gridSizeY < 3) throw new Error('The gridSizeY must be 3 or more');
 
+    this.initializeCanvas();
     this.initializeGrid();
     this.initializeRooms();
-    this.initializeCanvas();
   }
 
   initializeCanvas() {
@@ -28,8 +31,8 @@ export default class Map {
     this.mapCanvas.height = (this.gridSizeY / this.gridSizeX) * this.mapCanvas.width;
   }
 
+  // Create an empty grid of null values
   initializeGrid() {
-    // Create an empty grid of null values
     for (let y = 0; y < this.gridSizeY; y++) {
       this.grid[y] = [];
       for (let x = 0; x < this.gridSizeX; x++) {
@@ -39,8 +42,8 @@ export default class Map {
   }
 
   initializeRooms() {
-    // Place player room first, ensuring it has 4 doors
-    // Player start position is any random room NOT on the border
+    // Place player room first, ensuring it has all 4 doors
+    // Player start position is any random room NOT along the border
     const playerStartX = Math.floor(Math.random() * (this.gridSizeX - 2) + 1);
     const playerStartY = Math.floor(Math.random() * (this.gridSizeY - 2) + 1);
     const playerRoom = new BasicRoom(this.game, playerStartX, playerStartY);
@@ -59,42 +62,37 @@ export default class Map {
       }
     }
 
-    // Add doors to each room
+    // Loop again to add doors to each room after rooms exist
+    // to be able to manipulate the adjacent room's doors
     for (let y = 0; y < this.gridSizeY; y++) {
       for (let x = 0; x < this.gridSizeX; x++) {
         this.addDoors(x, y);
       }
     }
 
-    const minDistance = 3;
-    const maxDistance = 4;
-    const roomsInRange = this.getRoomsWithinRange(this.playerRoom!, minDistance, maxDistance);
+    // Get eligible rooms within a range of moves to set as the goal room
+    const roomsInRange = this.getRoomsWithinRange(this.playerRoom!, this.minGoalDistance, this.maxGoalDistance);
     if (!roomsInRange.length) throw new Error('Unable to find a goal room in the given range.');
 
-    // Randomly select one of the rooms in range to be the GoalRoom
-    if (roomsInRange.length > 0) {
-      const randomRoom = roomsInRange[Math.floor(Math.random() * roomsInRange.length)];
-      const goalRoom = new GoalRoom(this.game, randomRoom.x, randomRoom.y);
-      goalRoom.doors = randomRoom.doors; // Keep the existing doors
-      this.grid[randomRoom.y][randomRoom.x] = goalRoom;
-      this.goalRoom = goalRoom;
-    }
+    // Randomly select one of the rooms in range to be the goal room
+    const randomRoom = roomsInRange[Math.floor(Math.random() * roomsInRange.length)];
+    const goalRoom = new GoalRoom(this.game, randomRoom.x, randomRoom.y);
+    goalRoom.doors = randomRoom.doors; // Copy the existing doors
+    this.grid[randomRoom.y][randomRoom.x] = goalRoom;
+    this.goalRoom = this.grid[randomRoom.y][randomRoom.x];
   }
 
+  // Add at least 2 doors to every room and connect adjacent rooms
   addDoors(x: number, y: number) {
     const room = this.grid[y][x];
     if (!room) return;
 
-    // Get possible directions
     const possibleDirections: Direction[] = this.getPossibleDirections(x, y);
-
-    // Assign at least 2 doors
     const doorsToAdd = this.ensureMinimumDoors(room, possibleDirections, 2);
-
-    // Ensure adjacent rooms have corresponding doors
     this.updateAdjacentRooms(x, y, doorsToAdd);
   }
 
+  // Get directions not outside the grid boundary
   getPossibleDirections(x: number, y: number): Direction[] {
     const possibleDirections: Direction[] = [];
     if (!this.isOutsideGrid(x, y, 'up')) possibleDirections.push('up');
@@ -167,9 +165,7 @@ export default class Map {
       visited.add(room);
 
       // Check if the room is within the desired range
-      if (distance >= minDistance && distance <= maxDistance) {
-        roomsInRange.push(room);
-      }
+      if (distance >= minDistance && distance <= maxDistance) roomsInRange.push(room);
 
       // Stop if we exceed the maximum distance
       if (distance >= maxDistance) continue;
@@ -247,10 +243,7 @@ export default class Map {
         const posY = offsetY + y * roomSize;
 
         // Draw room rectangle
-        let color = '#8d8d8d';
-        if (room.discovered) color = '#c9c9c9';
-        if (room.visited) color = room.color;
-        ctx.fillStyle = room === this.playerRoom ? '#44eadc' : color;
+        ctx.fillStyle = room === this.playerRoom ? this.playerRoomColor : room.color;
         ctx.strokeStyle = 'black';
         this.drawRoundedRect(
           ctx,
