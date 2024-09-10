@@ -8,8 +8,11 @@
   </head>
   <body>
     <div class="container">
-      <div id="app" v-cloak class="info">
-        <div>
+      <div id="app" v-cloak class="sidebar">
+        <div class="info">
+          <div class="map">
+            <canvas id="map-canvas"></canvas>
+          </div>
           <div>
             <div class="connect" :class="{connected}">{{ connectionText }}</div>
             <div>UP: {{ votes.up }}</div>
@@ -19,9 +22,6 @@
             <div>MOVES: {{ moves }}</div>
             <div>WINS: {{ wins }}</div>
             <div>LOSES: {{ loses }}</div>
-          </div>
-          <div class="map">
-            <canvas id="map-canvas"></canvas>
           </div>
         </div>
 
