@@ -2,14 +2,16 @@ import type Game from './Game';
 
 export default class Player {
   game: Game;
-  x: number;
-  y: number;
+  x = 0;
+  y = 0;
   vx = 0;
   vy = 0;
+  centerX: number;
+  centerY: number;
   width = 100;
   height = 100;
   direction: Direction | null = null;
-  speed = 1000;
+  speed = 100;
   image = document.getElementById('cat_icon_image') as HTMLImageElement;
   spriteWidth = 112;
   spriteHeight = 112;
@@ -17,11 +19,13 @@ export default class Player {
   maxFrames = 6;
   staggerFrames = 10;
   margin = 0;
+  moveTowardsCenter = false;
 
   constructor(game: Game) {
     this.game = game;
-    this.x = this.game.width * 0.5 - this.width * 0.5;
-    this.y = this.game.height * 0.5 - this.height * 0.5;
+    this.centerX = this.game.width * 0.5 - this.width * 0.5;
+    this.centerY = this.game.height * 0.5 - this.height * 0.5;
+    this.reset();
   }
 
   draw(ctx: CanvasRenderingContext2D) {
@@ -46,6 +50,13 @@ export default class Player {
   }
 
   update(deltaTime: number) {
+    if (this.moveTowardsCenter) {
+      const movementThreshold = (this.speed * deltaTime) / 1000;
+      const reachedCenterX = Math.abs(this.x - this.centerX) < movementThreshold;
+      const reachedCenterY = Math.abs(this.y - this.centerY) < movementThreshold;
+      if (reachedCenterX && reachedCenterY) this.game.startRound();
+    }
+
     switch (this.direction) {
       case 'up':
         this.vx = 0;
@@ -85,6 +96,7 @@ export default class Player {
     this.y = this.game.height * 0.5 - this.height * 0.5;
     this.frameY = 0;
     this.direction = null;
+    this.moveTowardsCenter = false;
   }
 
   hitWall(): boolean {

@@ -5,7 +5,7 @@ import Map from './Map';
 import GUI from './GUI';
 
 export default class Game {
-  debug = false;
+  debug = true;
   width: number;
   height: number;
   twitch: Twitch;
@@ -16,7 +16,7 @@ export default class Game {
   loses = ref(0);
   gameOver = false;
   votes: Record<Direction, number>;
-  lastUpdatedVote: Direction | null = null;
+  lastVotedDirection: Direction | null = null;
 
   marginX = 160; // X-axis margin for player collision with game edge
   marginY = 120; // Y-axis margin for player collision with game edge
@@ -130,10 +130,34 @@ export default class Game {
     const nextRoom = this.map.getAdjacentRoom(this.map.playerRoom.x, this.map.playerRoom.y, this.player.direction);
     if (!nextRoom) return; // Edge case - We should only be getting directions to a valid room we can move to
     this.moves.value--;
-    if (this.moves.value <= 0) this.loseGame();
+    if (this.moves.value <= 0) {
+      this.loseGame();
+      return;
+    }
+
+    // Position the player on the opposite side of where they exited the last room
+    switch (this.player.direction) {
+      case 'up':
+        this.player.x = this.width * 0.5 - this.player.width * 0.5;
+        this.player.y = this.height - this.player.height - this.marginY;
+        break;
+      case 'down':
+        this.player.x = this.width * 0.5 - this.player.width * 0.5;
+        this.player.y = this.marginY;
+        break;
+      case 'left':
+        this.player.x = this.width - this.player.width - this.marginX;
+        this.player.y = this.height * 0.5 - this.player.height * 0.5;
+        break;
+      case 'right':
+        this.player.x = this.marginX;
+        this.player.y = this.height * 0.5 - this.player.height * 0.5;
+        break;
+    }
+
+    this.player.moveTowardsCenter = true;
     this.map.playerRoom = nextRoom;
     this.map.playerRoom.onPlayerEnter();
-    this.startRound();
   }
 
   // Reset directional count votes to 0
@@ -173,8 +197,8 @@ export default class Game {
         this.player.direction = topDirections[0];
       } else {
         // If multiple directions have the highest vote, prioritize the last voted one
-        if (this.lastUpdatedVote && topDirections.includes(this.lastUpdatedVote)) {
-          this.player.direction = this.lastUpdatedVote;
+        if (this.lastVotedDirection && topDirections.includes(this.lastVotedDirection)) {
+          this.player.direction = this.lastVotedDirection;
         } else {
           // If the last voted direction is not among the top ones, choose randomly from the top directions
           this.player.direction = topDirections[Math.floor(Math.random() * topDirections.length)];
@@ -189,7 +213,7 @@ export default class Game {
     // Only add the vote if there is a door in that direction
     if (this.map.playerRoom.doors[direction]) {
       this.votes[direction]++;
-      this.lastUpdatedVote = direction;
+      this.lastVotedDirection = direction;
     }
   }
 
