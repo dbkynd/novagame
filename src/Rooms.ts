@@ -33,9 +33,8 @@ export abstract class Room {
   }
 
   draw(ctx: CanvasRenderingContext2D) {
-    // Room image
-
     if (!this.game.debug) {
+      // Room image
       ctx.drawImage(this.image, 0, 0, this.game.width, this.game.height);
     } else {
       // Yellow bars to show doorways
@@ -79,7 +78,7 @@ export class BasicRoom extends Room {
 
 export class GoalRoom extends Room {
   name = 'goal_room';
-  image = new Image();
+  image = document.getElementById('room_image') as HTMLImageElement;
 
   constructor(game: Game, x: number, y: number) {
     super(game, x, y);
@@ -88,15 +87,4 @@ export class GoalRoom extends Room {
   onPlayerEnter() {
     this.game.winGame();
   }
-}
-
-export class BathRoom extends Room {
-  name = 'bath_room';
-  image = new Image();
-
-  constructor(game: Game, x: number, y: number) {
-    super(game, x, y);
-  }
-
-  onPlayerEnter() {}
 }
