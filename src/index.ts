@@ -2,7 +2,7 @@ import { computed, createApp } from 'vue';
 import Game from './Game';
 
 // Setup canvas
-const canvas = document.getElementById('canvas') as HTMLCanvasElement;
+const canvas = document.getElementById('canvasGame') as HTMLCanvasElement;
 const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
 canvas.width = 960;
 canvas.height = 720;

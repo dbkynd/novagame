@@ -34,7 +34,7 @@ module.exports = {
   },
   plugins: [
     new HtmlWebpackPlugin({
-      template: './src/index.html',
+      template: './public/index.html',
       minify: {
         collapseWhitespace: true,
         removeComments: true,
@@ -49,7 +49,15 @@ module.exports = {
       },
     }),
     new CopyWebpackPlugin({
-      patterns: [{ from: 'public', to: './' }],
+      patterns: [
+        {
+          from: 'public',
+          to: './',
+          globOptions: {
+            ignore: ['**/index.html'],
+          },
+        },
+      ],
     }),
   ],
   optimization: {
