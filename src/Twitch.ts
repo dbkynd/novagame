@@ -6,7 +6,7 @@ export default class Twitch {
   game: Game;
   client: Client;
   chats = ref<Chat[]>([]);
-  acceptedEntryUserIds: string[] = [];
+  acceptedVoteUserIds: string[] = [];
   maxChats = 20;
   directionRegex = /\b(up|down|left|right)\b/i;
   connected = ref(false);
@@ -27,15 +27,18 @@ export default class Twitch {
       this.connected.value = false;
     });
 
+    // New chat message
     this.client.on('message', (channel, tags, message, self) => {
-      const id = tags['user-id'];
-      if (!id) return;
+      const userId = tags['user-id'];
+      if (!userId) return;
 
       // "accepted" is if the chat message is included in the decision-making of this game round or not
-      let accepted = !this.game.gameOver && this.game.doCountdown && !this.acceptedEntryUserIds.includes(id);
+      let accepted = !this.game.gameOver && this.game.doCountdown && !this.acceptedVoteUserIds.includes(userId);
 
+      // Match a direction in the message
       const match = message.match(this.directionRegex);
       if (match) {
+        // Only consider the first direction found in the message. i.e. "left right left" will only count once for "left"
         const direction = match[1].toLowerCase() as Direction;
         if (this.game.map.playerRoom?.doors[direction]) {
           this.game.addVote(direction);
@@ -44,18 +47,18 @@ export default class Twitch {
         }
       }
 
-      // Ignore further chats from those that have an accepted entry
-      if (accepted) this.acceptedEntryUserIds.push(id);
+      // Set this to no longer accept chats from those that already have a vote accepted this round
+      if (accepted) this.acceptedVoteUserIds.push(userId);
 
-      // Add chat
+      // Add chat for display
       const chat: Chat = { message, accepted };
       this.chats.value.push(chat);
       if (this.chats.value.length > this.maxChats) this.chats.value.shift();
     });
   }
 
-  // Clear chat user ids filtering list
+  // Clear chat user ids accepted votes filtering list
   reset() {
-    this.acceptedEntryUserIds = [];
+    this.acceptedVoteUserIds = [];
   }
 }
