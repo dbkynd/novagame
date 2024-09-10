@@ -26,12 +26,12 @@ export default class GUI {
         this.game.height - this.game.marginY * 2,
       );
 
-      if (this.game.grid.playerRoom) {
+      if (this.game.map.playerRoom) {
         ctx.fillStyle = 'black';
         ctx.font = '16px Impact';
         ctx.fillText(
-          this.game.grid.playerRoom.name,
-          this.game.width - ctx.measureText(this.game.grid.playerRoom.name).width - 3,
+          this.game.map.playerRoom.name,
+          this.game.width - ctx.measureText(this.game.map.playerRoom.name).width - 3,
           this.game.height - 5,
         );
       }
@@ -43,13 +43,13 @@ export default class GUI {
     const spacing = 3;
     const doorSize = roomSize / 4;
     const margin = 0;
-    const offsetX = this.game.width - this.game.grid.gridSizeX * roomSize - margin;
+    const offsetX = this.game.width - this.game.map.gridSizeX * roomSize - margin;
     const offsetY = margin;
     const cornerRadius = 8;
 
-    for (let y = 0; y < this.game.grid.gridSizeY; y++) {
-      for (let x = 0; x < this.game.grid.gridSizeX; x++) {
-        const room = this.game.grid.grid[y][x];
+    for (let y = 0; y < this.game.map.gridSizeY; y++) {
+      for (let x = 0; x < this.game.map.gridSizeX; x++) {
+        const room = this.game.map.grid[y][x];
         if (!room) continue;
 
         const posX = offsetX + x * roomSize;
@@ -59,7 +59,7 @@ export default class GUI {
         let color = '#8d8d8d';
         if (room.discovered) color = '#c9c9c9';
         if (room.visited) color = room.color;
-        ctx.fillStyle = room === this.game.grid.playerRoom ? '#44eadc' : color;
+        ctx.fillStyle = room === this.game.map.playerRoom ? '#44eadc' : color;
         ctx.strokeStyle = 'black';
         this.drawRoundedRect(
           ctx,
@@ -71,7 +71,7 @@ export default class GUI {
         );
 
         // Highlight goal room
-        if (this.game.debug && room === this.game.grid.goalRoom) {
+        if (this.game.debug && room === this.game.map.goalRoom) {
           const treatsIcon = document.getElementById('treats_icon_image') as HTMLImageElement;
           const treatsMargin = 2;
           ctx.drawImage(
@@ -84,7 +84,7 @@ export default class GUI {
         }
 
         // Highlight player room
-        if (room === this.game.grid.playerRoom) {
+        if (room === this.game.map.playerRoom) {
           const catIcon = document.getElementById('cat_icon_image') as HTMLImageElement;
           const catMargin = 5;
           ctx.drawImage(

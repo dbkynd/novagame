@@ -4,8 +4,8 @@ export abstract class Room {
   game: Game;
   abstract name: string;
   abstract image: HTMLImageElement;
-  x: number; // Grid X position
-  y: number; // Grid Y position
+  x: number; // Map grid X position
+  y: number; // Map grid Y position
   doors: Record<Direction, boolean>;
   color = '#f8f8f8'; // Map background color
   discovered = false; // Player has seen this room's door
@@ -54,7 +54,7 @@ export abstract class Room {
     }
   }
 
-  abstract onEnter(): void;
+  abstract onPlayerEnter(): void;
 }
 
 export class BasicRoom extends Room {
@@ -65,7 +65,7 @@ export class BasicRoom extends Room {
     super(game, x, y);
   }
 
-  onEnter() {}
+  onPlayerEnter() {}
 }
 
 export class GoalRoom extends Room {
@@ -77,10 +77,9 @@ export class GoalRoom extends Room {
     super(game, x, y);
   }
 
-  onEnter() {
+  onPlayerEnter() {
     const sound = document.getElementById('cheer_sound') as HTMLAudioElement;
-    sound.volume = 0.4;
-    sound.play();
+    this.game.playSound(sound);
   }
 }
 
@@ -93,5 +92,5 @@ export class BathRoom extends Room {
     super(game, x, y);
   }
 
-  onEnter() {}
+  onPlayerEnter() {}
 }

@@ -1,7 +1,7 @@
 import { BasicRoom, GoalRoom, Room } from './Rooms';
 import type Game from './Game';
 
-export default class Grid {
+export default class Map {
   game: Game;
   grid: (Room | null)[][] = [];
   gridSizeX = 5;
@@ -190,6 +190,10 @@ export default class Grid {
       default:
         return null;
     }
+  }
+
+  draw(ctx: CanvasRenderingContext2D) {
+    this.playerRoom?.draw(ctx);
   }
 
   update() {

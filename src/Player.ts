@@ -79,6 +79,7 @@ export default class Player {
     if (this.hitWall()) this.game.nextRound();
   }
 
+  // Reset player to start position
   reset() {
     this.x = this.game.width * 0.5 - this.width * 0.5;
     this.y = this.game.height * 0.5 - this.height * 0.5;

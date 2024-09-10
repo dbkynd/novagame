@@ -1,8 +1,8 @@
 import { computed, createApp } from 'vue';
 import Game from './Game';
 
-// Setup canvas
-const canvas = document.getElementById('canvasGame') as HTMLCanvasElement;
+// Setup game canvas
+const canvas = document.getElementById('game-canvas') as HTMLCanvasElement;
 const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
 canvas.width = 960;
 canvas.height = 720;
@@ -42,7 +42,7 @@ createApp({
     });
 
     return {
-      counts: game.counts,
+      votes: game.votes,
       moves: game.moves,
       processedMessages,
       connected: game.twitch.connected,

@@ -37,8 +37,8 @@ export default class Twitch {
       const match = message.match(this.directionRegex);
       if (match) {
         const direction = match[1].toLowerCase() as Direction;
-        if (this.game.grid.playerRoom?.doors[direction]) {
-          this.game.addCount(direction);
+        if (this.game.map.playerRoom?.doors[direction]) {
+          this.game.addVote(direction);
         } else {
           accepted = false; // Set accepted to false if there is no door in that direction
         }
@@ -54,6 +54,7 @@ export default class Twitch {
     });
   }
 
+  // Clear chat user ids filtering list
   reset() {
     this.acceptedEntryUserIds = [];
   }

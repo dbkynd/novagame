@@ -12,10 +12,10 @@
         <div>
           <div>
             <div class="connect" :class="{connected}">{{ connectionText }}</div>
-            <div>UP: {{ counts.up }}</div>
-            <div>DOWN: {{ counts.down }}</div>
-            <div>LEFT: {{ counts.left }}</div>
-            <div>RIGHT: {{ counts.right }}</div>
+            <div>UP: {{ votes.up }}</div>
+            <div>DOWN: {{ votes.down }}</div>
+            <div>LEFT: {{ votes.left }}</div>
+            <div>RIGHT: {{ votes.right }}</div>
             <div>MOVES: {{ moves }}</div>
           </div>
           <div>
@@ -29,7 +29,7 @@
       </div>
 
       <div class="game">
-        <canvas id="canvasGame"></canvas>
+        <canvas id="game-canvas"></canvas>
       </div>
     </div>
     <div class="assets">
