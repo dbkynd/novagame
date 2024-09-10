@@ -4,17 +4,28 @@ import type Game from './Game';
 export default class Map {
   game: Game;
   grid: (Room | null)[][] = [];
-  gridSizeX = 5;
+  gridSizeX = 4;
   gridSizeY = 4;
   playerRoom: Room | null = null;
   goalRoom: GoalRoom | null = null;
+  mapCanvas: HTMLCanvasElement | null = null;
+  mapCtx: CanvasRenderingContext2D | null = null;
 
   constructor(game: Game) {
     this.game = game;
     if (this.gridSizeX < 4) throw new Error('The gridSizeX must be more than 4');
     if (this.gridSizeY < 3) throw new Error('The gridSizeY must be more than 3');
+
     this.initializeGrid();
     this.initializeRooms();
+    this.initializeCanvas();
+  }
+
+  initializeCanvas() {
+    this.mapCanvas = document.getElementById('map-canvas') as HTMLCanvasElement;
+    this.mapCtx = this.mapCanvas.getContext('2d') as CanvasRenderingContext2D;
+    this.mapCanvas.width = 320;
+    this.mapCanvas.height = (this.gridSizeY / this.gridSizeX) * this.mapCanvas.width;
   }
 
   initializeGrid() {
@@ -194,6 +205,7 @@ export default class Map {
 
   draw(ctx: CanvasRenderingContext2D) {
     this.playerRoom?.draw(ctx);
+    if (this.mapCtx) this.drawMiniMap(this.mapCtx);
   }
 
   update() {
@@ -216,5 +228,92 @@ export default class Map {
       this.game.player.reset();
       this.game.gameOver = true;
     }
+  }
+
+  drawMiniMap(ctx: CanvasRenderingContext2D) {
+    const spacing = 3;
+    const roomSize = (ctx.canvas.width - spacing * (this.gridSizeX + 1)) / this.gridSizeX;
+    const doorSize = roomSize / 4;
+    const offsetX = spacing * 3;
+    const offsetY = spacing * 3;
+    const cornerRadius = 8;
+
+    for (let y = 0; y < this.gridSizeY; y++) {
+      for (let x = 0; x < this.gridSizeX; x++) {
+        const room = this.grid[y][x];
+        if (!room) continue;
+
+        const posX = offsetX + x * roomSize;
+        const posY = offsetY + y * roomSize;
+
+        // Draw room rectangle
+        let color = '#8d8d8d';
+        if (room.discovered) color = '#c9c9c9';
+        if (room.visited) color = room.color;
+        ctx.fillStyle = room === this.playerRoom ? '#44eadc' : color;
+        ctx.strokeStyle = 'black';
+        this.drawRoundedRect(
+          ctx,
+          posX + spacing,
+          posY + spacing,
+          roomSize - spacing * 2,
+          roomSize - spacing * 2,
+          cornerRadius,
+        );
+
+        // Highlight goal room
+        if (this.game.debug && room === this.goalRoom) {
+          const treatsIcon = document.getElementById('treats_icon_image') as HTMLImageElement;
+          const treatsMargin = 2;
+          ctx.drawImage(
+            treatsIcon,
+            posX + treatsMargin,
+            posY + treatsMargin,
+            roomSize - treatsMargin * 2,
+            roomSize - treatsMargin * 2,
+          );
+        }
+
+        // Highlight player room
+        if (room === this.playerRoom) {
+          const catIcon = document.getElementById('cat_icon_image') as HTMLImageElement;
+          const catMargin = 5;
+          ctx.drawImage(
+            catIcon,
+            posX + catMargin,
+            posY + catMargin,
+            roomSize - catMargin * 2,
+            roomSize - catMargin * 2,
+          );
+        }
+
+        // Draw doors
+        if (this.game.debug || room.visited) {
+          ctx.fillStyle = '#ea2424';
+          const doorX = posX + roomSize * 0.5 - doorSize * 0.5;
+          const doorY = posY + roomSize * 0.5 - doorSize * 0.5;
+          if (room.doors.up) ctx.fillRect(doorX, posY, doorSize, spacing);
+          if (room.doors.down) ctx.fillRect(doorX, posY + roomSize - spacing, doorSize, spacing);
+          if (room.doors.left) ctx.fillRect(posX, doorY, spacing, doorSize);
+          if (room.doors.right) ctx.fillRect(posX + roomSize - spacing, doorY, spacing, doorSize);
+        }
+      }
+    }
+  }
+
+  drawRoundedRect(ctx: CanvasRenderingContext2D, x: number, y: number, width: number, height: number, radius: number) {
+    ctx.beginPath();
+    ctx.moveTo(x + radius, y);
+    ctx.lineTo(x + width - radius, y);
+    ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+    ctx.lineTo(x + width, y + height - radius);
+    ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+    ctx.lineTo(x + radius, y + height);
+    ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+    ctx.lineTo(x, y + radius);
+    ctx.quadraticCurveTo(x, y, x + radius, y);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
   }
 }

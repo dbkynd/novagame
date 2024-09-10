@@ -21,6 +21,9 @@ function animate(timestamp = 0) {
 
 // Wait until all assets are downloaded and the DOM is ready before starting the animation loop
 window.addEventListener('load', () => {
+  // Initialize the game canvas here because I'm guessing with TS the class is hoisted
+  // and even things in the constructor are being ran before the DOM is fully loaded??
+  game.map.initializeCanvas();
   animate();
 });
 

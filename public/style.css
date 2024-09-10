@@ -57,3 +57,11 @@
 .connect.connected {
   background: #4bcb4b;
 }
+
+.map {
+}
+
+#map-canvas {
+  width: 100%;
+  height: 100%;
+}
