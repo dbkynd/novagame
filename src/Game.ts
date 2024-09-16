@@ -4,6 +4,15 @@ import Player from './Player';
 import Map from './Map';
 import GUI from './GUI';
 
+export enum RoundState {
+  WaitingForVotes,
+  FinalizingVotes,
+  PlayerLeavingRoom,
+  NewRoomLogic,
+  PlayerMovingToCenter,
+  WaitingToReset,
+}
+
 export default class Game {
   debug = true;
   width: number;
@@ -12,22 +21,23 @@ export default class Game {
   player: Player;
   map: Map;
   GUI: GUI;
-  wins = ref(0);
-  loses = ref(0);
-  gameOver = false;
-  votes: Record<Direction, number>;
-  lastVotedDirection: Direction | null = null;
 
   marginX = 160; // X-axis margin for player collision with game edge
   marginY = 120; // Y-axis margin for player collision with game edge
 
+  wins = ref(0);
+  loses = ref(0);
+  gameOver = false;
   maxMoves = 10;
   moves = ref(this.maxMoves);
-  roundDuration = 10000; // Duration of voting rounds
-  countdown = this.roundDuration;
-  doCountdown = false;
-  resetTimer = 0;
-  resetDuration = 5000; // How long after game over does the game restart
+  currentState: RoundState = RoundState.WaitingForVotes;
+  roundTimer: number = 0;
+  votingDuration = 10000;
+  votingGracePeriod = 2000;
+  resetDuration = 5000;
+
+  votes: Record<Direction, number>;
+  lastVotedDirection: Direction | null = null;
 
   fps = 0;
   fpsHistory: number[] = [];
@@ -95,23 +105,47 @@ export default class Game {
 
   // Update all components for the next frame
   update(deltaTime: number) {
-    if (!this.gameOver) {
-      this.map.update();
-      this.player.update(deltaTime);
+    this.roundTimer += deltaTime;
+    switch (this.currentState) {
+      case RoundState.WaitingForVotes:
+        if (this.roundTimer >= this.votingDuration) this.transitionToNextState();
+        break;
+      case RoundState.FinalizingVotes:
+        if (this.roundTimer >= this.votingGracePeriod) this.transitionToNextState();
+        break;
+      case RoundState.PlayerLeavingRoom:
+      case RoundState.PlayerMovingToCenter:
+        this.player.update(deltaTime);
+        break;
+      case RoundState.NewRoomLogic:
+        break;
+      case RoundState.WaitingToReset:
+        if (this.roundTimer >= this.resetDuration) this.resetGame();
+        break;
+    }
+  }
 
-      if (this.doCountdown) {
-        this.countdown -= deltaTime;
-        if (this.countdown <= 0) {
-          this.doCountdown = false;
-          this.chooseDirection();
-        }
-      }
-    } else {
-      this.resetTimer += deltaTime;
-      if (this.resetTimer >= this.resetDuration) {
-        this.resetTimer = 0;
-        this.resetGame();
-      }
+  transitionToNextState() {
+    this.roundTimer = 0;
+    switch (this.currentState) {
+      case RoundState.WaitingForVotes:
+        this.currentState = RoundState.FinalizingVotes;
+        break;
+      case RoundState.FinalizingVotes:
+        this.chooseDirection();
+        this.currentState = RoundState.PlayerLeavingRoom;
+        break;
+      case RoundState.PlayerLeavingRoom:
+        this.nextRound();
+        this.currentState = RoundState.NewRoomLogic;
+        break;
+      case RoundState.NewRoomLogic:
+        this.currentState = RoundState.PlayerMovingToCenter;
+        this.map.playerRoom?.onPlayerEnter();
+        break;
+      case RoundState.PlayerMovingToCenter:
+        this.currentState = RoundState.WaitingForVotes;
+        break;
     }
   }
 
@@ -120,8 +154,7 @@ export default class Game {
     this.twitch.reset();
     this.player.reset();
     this.resetCounts();
-    this.countdown = this.roundDuration;
-    this.doCountdown = true;
+    this.currentState = RoundState.WaitingForVotes;
   }
 
   // Advance the game to the next voting round
@@ -155,9 +188,7 @@ export default class Game {
         break;
     }
 
-    this.player.moveTowardsCenter = true;
     this.map.playerRoom = nextRoom;
-    this.map.playerRoom.onPlayerEnter();
   }
 
   // Reset directional count votes to 0
@@ -252,5 +283,12 @@ export default class Game {
   loseGame() {
     this.loses.value++;
     this.gameOver = true;
+  }
+
+  doVoting(): boolean {
+    return (
+      !this.gameOver &&
+      (this.currentState === RoundState.WaitingForVotes || this.currentState === RoundState.FinalizingVotes)
+    );
   }
 }

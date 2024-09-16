@@ -1,4 +1,4 @@
-import type Game from './Game';
+import Game, { RoundState } from './Game';
 
 export default class Player {
   game: Game;
@@ -19,7 +19,6 @@ export default class Player {
   maxFrames = 6;
   staggerFrames = 10;
   margin = 0;
-  moveTowardsCenter = false;
 
   constructor(game: Game) {
     this.game = game;
@@ -50,11 +49,11 @@ export default class Player {
   }
 
   update(deltaTime: number) {
-    if (this.moveTowardsCenter) {
+    if (this.game.currentState === RoundState.PlayerMovingToCenter) {
       const movementThreshold = (this.speed * deltaTime) / 1000;
       const reachedCenterX = Math.abs(this.x - this.centerX) < movementThreshold;
       const reachedCenterY = Math.abs(this.y - this.centerY) < movementThreshold;
-      if (reachedCenterX && reachedCenterY) this.game.startRound();
+      if (reachedCenterX && reachedCenterY) this.game.transitionToNextState();
     }
 
     switch (this.direction) {
@@ -87,7 +86,7 @@ export default class Player {
     this.x += (this.vx * this.speed * deltaTime) / 1000;
     this.y += (this.vy * this.speed * deltaTime) / 1000;
 
-    if (this.hitWall()) this.game.nextRound();
+    if (this.hitWall()) this.game.transitionToNextState();
   }
 
   // Reset player to start position
@@ -96,7 +95,6 @@ export default class Player {
     this.y = this.game.height * 0.5 - this.height * 0.5;
     this.frameY = 0;
     this.direction = null;
-    this.moveTowardsCenter = false;
   }
 
   hitWall(): boolean {

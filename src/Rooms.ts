@@ -73,7 +73,9 @@ export class BasicRoom extends Room {
     super(game, x, y);
   }
 
-  onPlayerEnter() {}
+  onPlayerEnter() {
+    this.game.transitionToNextState();
+  }
 }
 
 export class GoalRoom extends Room {

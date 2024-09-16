@@ -33,7 +33,7 @@ export default class Twitch {
       if (!userId) return;
 
       // "accepted" is if the chat message is included in the decision-making of this game round or not
-      let accepted = !this.game.gameOver && this.game.doCountdown && !this.acceptedVoteUserIds.includes(userId);
+      let accepted = this.game.doVoting() && !this.acceptedVoteUserIds.includes(userId);
 
       // Match a direction in the message
       const match = message.match(this.directionRegex);

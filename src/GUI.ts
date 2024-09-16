@@ -1,4 +1,5 @@
 import type Game from './Game';
+import { RoundState } from './Game';
 
 export default class GUI {
   game: Game;
@@ -13,6 +14,9 @@ export default class GUI {
 
   drawDebug(ctx: CanvasRenderingContext2D) {
     if (this.game.debug) {
+      const states = Object.values(RoundState).filter((x) => typeof x !== 'number');
+      const currentState = states[this.game.currentState];
+
       ctx.fillStyle = 'red';
       ctx.font = '20px Impact';
       ctx.fillText(this.game.avgFps.toString(), 3, 20);
@@ -28,11 +32,8 @@ export default class GUI {
       if (this.game.map.playerRoom) {
         ctx.fillStyle = 'black';
         ctx.font = '16px Impact';
-        ctx.fillText(
-          this.game.map.playerRoom.name,
-          this.game.width - ctx.measureText(this.game.map.playerRoom.name).width - 3,
-          this.game.height - 5,
-        );
+        const text = this.game.map.playerRoom.name + ' - ' + currentState;
+        ctx.fillText(text, this.game.width - ctx.measureText(text).width - 3, this.game.height - 5);
       }
     }
   }
