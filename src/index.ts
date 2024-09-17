@@ -1,28 +1,23 @@
 import { computed, createApp } from 'vue';
 import Game from './Game';
 
-// Setup game canvas
-const canvas = document.getElementById('game-canvas') as HTMLCanvasElement;
-const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
-canvas.width = 960;
-canvas.height = 720;
-
 // Create the main game instance
-const game = new Game(canvas);
+const game = new Game();
 
 // Animation loop
 let lastTime = 0;
 function animate(timestamp = 0) {
   const deltaTime = timestamp - lastTime;
   lastTime = timestamp;
-  game.render(ctx, deltaTime);
+  game.render(deltaTime);
   requestAnimationFrame(animate);
 }
 
 // Wait until all assets are downloaded and the DOM is ready before starting the animation loop
 window.addEventListener('load', () => {
-  // Initialize the game canvas here because I'm guessing with TS the class is hoisted
-  // and even things in the constructor are being ran before the DOM is fully loaded??
+  // Initialize the canvases here because something happens when a canvas element is a child element
+  // of the element that is mounted with Vue (#app) and it loses its reference. When making things reactive??
+  game.initializeCanvas();
   game.map.initializeCanvas();
   animate();
 });
@@ -62,6 +57,8 @@ createApp({
       processedMessages,
       connected: game.twitch.connected,
       connectionText,
+      timer: game.timer,
+      votingDialog: true,
     };
   },
 }).mount('#app');

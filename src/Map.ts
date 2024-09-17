@@ -19,7 +19,6 @@ export default class Map {
     if (this.gridSizeX < 4) throw new Error('The gridSizeX must be 4 or more');
     if (this.gridSizeY < 3) throw new Error('The gridSizeY must be 3 or more');
 
-    this.initializeCanvas();
     this.initializeRooms();
   }
 
@@ -49,13 +48,13 @@ export default class Map {
     }
   }
 
-  // Create a basic room for the player to start in and add it to the grid.
-  // The player room starts with all 4 doors.
+  // Create a basic room for the player to start in and add it to the grid
   setPlayerRoom() {
     // Player start position is any random room NOT along the border
     const playerStartX = Math.floor(Math.random() * (this.gridSizeX - 2) + 1);
     const playerStartY = Math.floor(Math.random() * (this.gridSizeY - 2) + 1);
     const playerRoom = new BasicRoom(this.game, playerStartX, playerStartY);
+    // The player room starts with all 4 doors
     playerRoom.doors.up = true;
     playerRoom.doors.down = true;
     playerRoom.doors.left = true;
@@ -131,7 +130,7 @@ export default class Map {
     return currentDoors;
   }
 
-  // Add a door to an adjacent room
+  // Add doors to an adjacent room
   updateAdjacentRooms(x: number, y: number, doors: Direction[]) {
     doors.forEach((dir) => {
       const adjacentRoom = this.getAdjacentRoom(x, y, dir);

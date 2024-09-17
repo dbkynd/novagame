@@ -33,7 +33,7 @@ export default class GUI {
         ctx.fillStyle = 'black';
         ctx.font = '16px Impact';
         const text = this.game.map.playerRoom.name + ' - ' + currentState;
-        ctx.fillText(text, this.game.width - ctx.measureText(text).width - 3, this.game.height - 5);
+        ctx.fillText(text, 3, this.game.height - 5);
       }
     }
   }

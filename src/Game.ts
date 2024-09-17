@@ -15,8 +15,10 @@ export enum RoundState {
 
 export default class Game {
   debug = true;
-  width: number;
-  height: number;
+  canvas: HTMLCanvasElement | null = null;
+  ctx: CanvasRenderingContext2D | null = null;
+  width = 960;
+  height = 720;
   twitch: Twitch;
   player: Player;
   map: Map;
@@ -32,6 +34,7 @@ export default class Game {
   moves = ref(this.maxMoves);
   currentState: RoundState = RoundState.WaitingForVotes;
   roundTimer: number = 0;
+  timer = ref(0);
   votingDuration = 10000;
   votingGracePeriod = 2000;
   resetDuration = 5000;
@@ -47,9 +50,7 @@ export default class Game {
 
   audioVolume = 0.4;
 
-  constructor(canvas: HTMLCanvasElement) {
-    this.width = canvas.width;
-    this.height = canvas.height;
+  constructor() {
     this.twitch = new Twitch(this);
     this.player = new Player(this);
     this.map = new Map(this);
@@ -58,6 +59,14 @@ export default class Game {
 
     this.addListeners();
     this.startRound();
+  }
+
+  // Initialize the game canvas
+  initializeCanvas() {
+    this.canvas = document.getElementById('game-canvas') as HTMLCanvasElement;
+    this.ctx = this.canvas.getContext('2d') as CanvasRenderingContext2D;
+    this.canvas.width = this.width;
+    this.canvas.height = this.height;
   }
 
   // Keyboard listeners
@@ -78,7 +87,7 @@ export default class Game {
   }
 
   // Main game loop
-  render(ctx: CanvasRenderingContext2D, deltaTime: number) {
+  render(deltaTime: number) {
     this.frameCount++;
 
     // Calculate average FPS
@@ -90,7 +99,7 @@ export default class Game {
       this.avgFps = this.fpsHistory.length ? Math.round(sumFps / this.fpsHistory.length) : 0;
     }
 
-    this.draw(ctx);
+    if (this.ctx) this.draw(this.ctx);
     this.update(deltaTime);
   }
 
@@ -106,45 +115,34 @@ export default class Game {
   // Update all components for the next frame
   update(deltaTime: number) {
     this.roundTimer += deltaTime;
+
+    this.map.update();
+    this.player.update(deltaTime);
+    this.timer.value = 0;
+
+    // Handle round state
     switch (this.currentState) {
-      case RoundState.WaitingForVotes:
+      case RoundState.WaitingForVotes: // Collecting votes for player movement from twitch chat
+        this.timer.value = Math.floor((this.votingDuration - this.roundTimer + 1000) / 1000);
         if (this.roundTimer >= this.votingDuration) this.transitionToNextState();
         break;
-      case RoundState.FinalizingVotes:
+      case RoundState.FinalizingVotes: // Grace period for collecting votes due to chat delay
         if (this.roundTimer >= this.votingGracePeriod) this.transitionToNextState();
-        break;
-      case RoundState.PlayerLeavingRoom:
-      case RoundState.PlayerMovingToCenter:
-        this.player.update(deltaTime);
-        break;
-      case RoundState.NewRoomLogic:
-        break;
-      case RoundState.WaitingToReset:
-        if (this.roundTimer >= this.resetDuration) this.resetGame();
         break;
     }
   }
 
   transitionToNextState() {
     this.roundTimer = 0;
+
     switch (this.currentState) {
       case RoundState.WaitingForVotes:
         this.currentState = RoundState.FinalizingVotes;
         break;
       case RoundState.FinalizingVotes:
-        this.chooseDirection();
-        this.currentState = RoundState.PlayerLeavingRoom;
-        break;
-      case RoundState.PlayerLeavingRoom:
-        this.nextRound();
-        this.currentState = RoundState.NewRoomLogic;
-        break;
-      case RoundState.NewRoomLogic:
-        this.currentState = RoundState.PlayerMovingToCenter;
-        this.map.playerRoom?.onPlayerEnter();
-        break;
-      case RoundState.PlayerMovingToCenter:
-        this.currentState = RoundState.WaitingForVotes;
+        // this.chooseDirection();
+        // this.showVotingPanel(false);
+        // this.currentState = RoundState.PlayerLeavingRoom;
         break;
     }
   }
@@ -155,6 +153,7 @@ export default class Game {
     this.player.reset();
     this.resetCounts();
     this.currentState = RoundState.WaitingForVotes;
+    // this.showVotingPanel(true);
   }
 
   // Advance the game to the next voting round
@@ -285,10 +284,16 @@ export default class Game {
     this.gameOver = true;
   }
 
-  allowVoting(): boolean {
+  allowVoting() {
     return (
       !this.gameOver &&
       (this.currentState === RoundState.WaitingForVotes || this.currentState === RoundState.FinalizingVotes)
     );
+  }
+
+  showVotingPanel(show: boolean) {
+    const element = document.getElementById('voting-panel');
+    if (!element) return;
+    element.style.display = show ? 'block' : 'none';
   }
 }

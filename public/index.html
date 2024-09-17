@@ -6,9 +6,9 @@
     <link rel="icon" href="favicon.ico" type="image/x-icon" />
     <link rel="stylesheet" href="style.css" />
   </head>
-  <body>
+  <body v-cloak id="app">
     <div class="container">
-      <div id="app" v-cloak class="sidebar">
+      <div class="sidebar">
         <div class="info">
           <div class="map">
             <canvas id="map-canvas"></canvas>
@@ -19,6 +19,7 @@
             <div>DOWN: {{ votes.down }}</div>
             <div>LEFT: {{ votes.left }}</div>
             <div>RIGHT: {{ votes.right }}</div>
+            <div>TIMER: {{ timer }}</div>
             <div>MOVES: {{ moves }}</div>
             <div>WINS: {{ wins }}</div>
             <div>LOSES: {{ loses }}</div>
