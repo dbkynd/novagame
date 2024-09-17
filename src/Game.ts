@@ -285,7 +285,7 @@ export default class Game {
     this.gameOver = true;
   }
 
-  doVoting(): boolean {
+  allowVoting(): boolean {
     return (
       !this.gameOver &&
       (this.currentState === RoundState.WaitingForVotes || this.currentState === RoundState.FinalizingVotes)

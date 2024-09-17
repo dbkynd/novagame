@@ -33,14 +33,15 @@ export default class Twitch {
       if (!userId) return;
 
       // "accepted" is if the chat message is included in the decision-making of this voting round
-      let accepted = this.game.doVoting() && !this.acceptedVoteUserIds.includes(userId);
+      let accepted = this.game.allowVoting() && !this.acceptedVoteUserIds.includes(userId);
 
-      // Match a direction in the message
+      // Match a "direction" in the message body
       const match = message.match(this.directionRegex);
       if (match) {
         // Only consider the first direction found in the message. i.e. "left right left" will only count once for "left"
         const direction = match[1].toLowerCase() as Direction;
         if (this.game.map.playerRoom?.doors[direction]) {
+          // Add a vote if there is a door in that direction
           this.game.addVote(direction);
           this.acceptedVoteUserIds.push(userId);
         } else {
