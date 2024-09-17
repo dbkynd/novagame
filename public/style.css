@@ -38,6 +38,10 @@
   border-top: 1px solid black;
 }
 
+.chat > div {
+  padding: 3px;
+}
+
 .chat > div:nth-child(even) {
   background-color: #c0c0c0;
 }

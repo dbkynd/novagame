@@ -30,14 +30,24 @@ window.addEventListener('load', () => {
 // Vue Component
 createApp({
   setup() {
-    const highlightWords = (chat: Chat) => {
+    function highlightWords(chat: Chat) {
       const directionRegex = /\b(up|down|left|right)\b/i;
       const className = chat.accepted ? 'accepted' : 'duplicate';
       return chat.message.replace(directionRegex, (match) => `<span class="${className}">${match}</span>`);
-    };
+    }
+
+    function colorUsername(chat: Chat) {
+      const name = chat.tags['display-name'] || chat.tags.username;
+      const color = chat.tags.color || '#000000';
+      return `<span style="color:${color}">${name}</span>`;
+    }
 
     const processedMessages = computed(() => {
-      return game.twitch.chats.value.map((chat) => highlightWords(chat));
+      return game.twitch.chats.value.map((chat) => {
+        const name = colorUsername(chat);
+        const message = highlightWords(chat);
+        return `${name}: ${message}`;
+      });
     });
 
     const connectionText = computed(() => {
