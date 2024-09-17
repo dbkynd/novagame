@@ -53,7 +53,10 @@ export default class Player {
       const movementThreshold = (this.speed * deltaTime) / 1000;
       const reachedCenterX = Math.abs(this.x - this.centerX) < movementThreshold;
       const reachedCenterY = Math.abs(this.y - this.centerY) < movementThreshold;
-      if (reachedCenterX && reachedCenterY) this.game.transitionToNextState();
+      if (reachedCenterX && reachedCenterY) {
+        this.game.transitionToNextState();
+        return;
+      }
     }
 
     switch (this.direction) {

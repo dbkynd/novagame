@@ -8,9 +8,9 @@ export enum RoundState {
   WaitingForVotes,
   FinalizingVotes,
   PlayerLeavingRoom,
-  NewRoomLogic,
+  RoomUpdates,
   PlayerMovingToCenter,
-  WaitingToReset,
+  GameOver,
 }
 
 export default class Game {
@@ -129,6 +129,10 @@ export default class Game {
       case RoundState.FinalizingVotes: // Grace period for collecting votes due to chat delay
         if (this.roundTimer >= this.votingGracePeriod) this.transitionToNextState();
         break;
+      case RoundState.GameOver: // Wait for a duration before starting the game over
+        this.timer.value = Math.floor((this.resetDuration - this.roundTimer + 1000) / 1000);
+        if (this.roundTimer >= this.resetDuration) this.transitionToNextState();
+        break;
     }
   }
 
@@ -140,11 +144,27 @@ export default class Game {
         this.currentState = RoundState.FinalizingVotes;
         break;
       case RoundState.FinalizingVotes:
-        // this.chooseDirection();
-        // this.showVotingPanel(false);
-        // this.currentState = RoundState.PlayerLeavingRoom;
+        this.player.direction = this.chooseDirection();
+        this.currentState = RoundState.PlayerLeavingRoom;
+        break;
+      case RoundState.PlayerLeavingRoom:
+        this.nextRound();
+        break;
+      case RoundState.PlayerMovingToCenter:
+        this.startRound();
+        break;
+      case RoundState.GameOver:
+        this.resetGame();
+        this.startRound();
         break;
     }
+  }
+
+  // Reset game components in order to start the game anew
+  resetGame() {
+    this.moves.value = this.maxMoves;
+    this.map = new Map(this);
+    this.gameOver = false;
   }
 
   // Start the beginning of each voting round
@@ -153,14 +173,13 @@ export default class Game {
     this.player.reset();
     this.resetCounts();
     this.currentState = RoundState.WaitingForVotes;
-    // this.showVotingPanel(true);
   }
 
   // Advance the game to the next voting round
   nextRound() {
-    if (!this.map.playerRoom || !this.player.direction) return;
-    const nextRoom = this.map.getAdjacentRoom(this.map.playerRoom.x, this.map.playerRoom.y, this.player.direction);
-    if (!nextRoom) return; // Edge case - We should only be getting directions to a valid room we can move to
+    if (!this.map.playerRoom || !this.player.direction) throw new Error('Missing expected properties');
+    this.map.playerRoom = this.map.getAdjacentRoom(this.map.playerRoom.x, this.map.playerRoom.y, this.player.direction);
+    this.map.playerRoom?.onPlayerEnter();
     this.moves.value--;
     if (this.moves.value <= 0) {
       this.loseGame();
@@ -187,7 +206,7 @@ export default class Game {
         break;
     }
 
-    this.map.playerRoom = nextRoom;
+    this.currentState = RoundState.PlayerMovingToCenter;
   }
 
   // Reset directional count votes to 0
@@ -198,14 +217,11 @@ export default class Game {
   }
 
   // Use the votes and room state to determine what direction the player will travel this round
-  chooseDirection() {
+  chooseDirection(): Direction {
     // Get the available directions with doors
     const availableDirections = Object.entries(this.map.playerRoom!.doors)
       .filter(([, hasDoor]) => hasDoor)
       .map(([direction]) => direction as Direction);
-
-    // If no doors are available (edge case), do nothing
-    if (availableDirections.length === 0) return;
 
     // Get votes only for the available directions
     const countsArray = Object.entries(this.votes).filter(([direction]) =>
@@ -217,21 +233,21 @@ export default class Game {
 
     if (maxCount === 0) {
       // If no directions were voted on, choose a random direction from available directions
-      this.player.direction = availableDirections[Math.floor(Math.random() * availableDirections.length)];
+      return availableDirections[Math.floor(Math.random() * availableDirections.length)];
     } else {
       // Filter directions with the highest votes
       const topDirections = countsArray.filter(([, count]) => count === maxCount).map(([direction]) => direction);
 
       // If only one direction has the highest vote, choose that
       if (topDirections.length === 1) {
-        this.player.direction = topDirections[0];
+        return topDirections[0];
       } else {
         // If multiple directions have the highest vote, prioritize the last voted one
         if (this.lastVotedDirection && topDirections.includes(this.lastVotedDirection)) {
-          this.player.direction = this.lastVotedDirection;
+          return this.lastVotedDirection;
         } else {
           // If the last voted direction is not among the top ones, choose randomly from the top directions
-          this.player.direction = topDirections[Math.floor(Math.random() * topDirections.length)];
+          return topDirections[Math.floor(Math.random() * topDirections.length)];
         }
       }
     }
@@ -256,14 +272,6 @@ export default class Game {
     ctx.restore();
   }
 
-  // Reset game components in order to start the game anew
-  resetGame() {
-    this.moves.value = this.maxMoves;
-    this.map = new Map(this);
-    this.gameOver = false;
-    this.startRound();
-  }
-
   // Clone and play a sound at a reduced volume
   playSound(sound: HTMLAudioElement) {
     const clone = sound.cloneNode() as HTMLAudioElement;
@@ -277,11 +285,15 @@ export default class Game {
     this.wins.value++;
     const sound = document.getElementById('cheer_sound') as HTMLAudioElement;
     this.playSound(sound);
+    this.gameOver = true;
+    this.currentState = RoundState.GameOver;
   }
 
   loseGame() {
     this.loses.value++;
     this.gameOver = true;
+    this.player.reset();
+    this.currentState = RoundState.GameOver;
   }
 
   allowVoting() {

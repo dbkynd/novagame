@@ -19,6 +19,8 @@ export default class Map {
     if (this.gridSizeX < 4) throw new Error('The gridSizeX must be 4 or more');
     if (this.gridSizeY < 3) throw new Error('The gridSizeY must be 3 or more');
 
+    // Have to initialize canvas again here because this Map object is recreated on a game reset
+    this.initializeCanvas();
     this.initializeRooms();
   }
 
@@ -231,12 +233,6 @@ export default class Map {
       if (this.playerRoom.doors.left && left) left.discovered = true;
       if (this.playerRoom.doors.right && right) right.discovered = true;
     }
-
-    // Game over if player reached goal room
-    if (this.playerRoom === this.goalRoom) {
-      this.game.player.reset();
-      this.game.gameOver = true;
-    }
   }
 
   drawMiniMap(ctx: CanvasRenderingContext2D) {
@@ -273,7 +269,7 @@ export default class Map {
           const treatsMargin = 2;
           ctx.drawImage(
             treatsIcon,
-            posX + treatsMargin,
+            posX + treatsMargin + 3,
             posY + treatsMargin,
             roomSize - treatsMargin * 2,
             roomSize - treatsMargin * 2,
