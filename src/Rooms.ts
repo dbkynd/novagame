@@ -62,7 +62,27 @@ export abstract class Room {
     }
   }
 
-  abstract onPlayerEnter(): void;
+  onPlayerEnter() {
+    // Position the player on the opposite side of where they exited the last room
+    switch (this.game.player.direction) {
+      case 'up':
+        this.game.player.x = this.game.width * 0.5 - this.game.player.width * 0.5;
+        this.game.player.y = this.game.height - this.game.player.height - this.game.marginY;
+        break;
+      case 'down':
+        this.game.player.x = this.game.width * 0.5 - this.game.player.width * 0.5;
+        this.game.player.y = this.game.marginY;
+        break;
+      case 'left':
+        this.game.player.x = this.game.width - this.game.player.width - this.game.marginX;
+        this.game.player.y = this.game.height * 0.5 - this.game.player.height * 0.5;
+        break;
+      case 'right':
+        this.game.player.x = this.game.marginX;
+        this.game.player.y = this.game.height * 0.5 - this.game.player.height * 0.5;
+        break;
+    }
+  }
 }
 
 export class BasicRoom extends Room {
@@ -73,7 +93,10 @@ export class BasicRoom extends Room {
     super(game, x, y);
   }
 
-  onPlayerEnter() {}
+  override onPlayerEnter() {
+    super.onPlayerEnter();
+    this.game.transitionToNextState();
+  }
 }
 
 export class GoalRoom extends Room {
@@ -84,7 +107,23 @@ export class GoalRoom extends Room {
     super(game, x, y);
   }
 
-  onPlayerEnter() {
+  override onPlayerEnter() {
+    super.onPlayerEnter();
     this.game.winGame();
+  }
+}
+
+export class LitterRoom extends Room {
+  name = 'litter_room';
+  image = document.getElementById('room_image') as HTMLImageElement;
+  override visitedColor = 'yellow';
+
+  constructor(game: Game, x: number, y: number) {
+    super(game, x, y);
+  }
+
+  override onPlayerEnter() {
+    super.onPlayerEnter();
+    this.game.transitionToNextState();
   }
 }

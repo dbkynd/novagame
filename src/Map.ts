@@ -1,5 +1,5 @@
 import type Game from './Game';
-import { BasicRoom, GoalRoom, Room } from './Rooms';
+import { BasicRoom, GoalRoom, LitterRoom, Room } from './Rooms';
 
 export default class Map {
   game: Game;
@@ -70,7 +70,9 @@ export default class Map {
     for (let y = 0; y < this.gridSizeY; y++) {
       for (let x = 0; x < this.gridSizeX; x++) {
         if (this.grid[y][x]) continue; // Skip any existing rooms
-        this.grid[y][x] = new BasicRoom(this.game, x, y);
+        const rooms = [BasicRoom, LitterRoom];
+        const roomIndex = Math.floor(Math.random() * rooms.length);
+        this.grid[y][x] = new rooms[roomIndex](this.game, x, y);
       }
     }
   }

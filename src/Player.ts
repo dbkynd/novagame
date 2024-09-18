@@ -19,6 +19,7 @@ export default class Player {
   maxFrames = 6;
   staggerFrames = 10;
   margin = 0;
+  target: { x: number; y: number } | null = null;
 
   constructor(game: Game) {
     this.game = game;
@@ -45,12 +46,19 @@ export default class Player {
     } else {
       ctx.strokeStyle = 'blue';
       ctx.strokeRect(this.x, this.y, this.width, this.height);
+      if (this.target) {
+        ctx.fillStyle = 'teal';
+        ctx.beginPath();
+        ctx.arc(this.target.x, this.target.y, 5, 0, Math.PI * 2);
+        ctx.fill();
+      }
     }
   }
 
   update(deltaTime: number) {
+    const movementThreshold = (this.speed * deltaTime) / 1000;
+
     if (this.game.currentState === RoundState.PlayerMovingToCenter) {
-      const movementThreshold = (this.speed * deltaTime) / 1000;
       const reachedCenterX = Math.abs(this.x - this.centerX) < movementThreshold;
       const reachedCenterY = Math.abs(this.y - this.centerY) < movementThreshold;
       if (reachedCenterX && reachedCenterY) {

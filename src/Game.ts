@@ -8,7 +8,7 @@ export enum RoundState {
   WaitingForVotes,
   FinalizingVotes,
   PlayerLeavingRoom,
-  RoomUpdates,
+  PlayerDoingRoomEntry,
   PlayerMovingToCenter,
   GameOver,
 }
@@ -144,16 +144,22 @@ export default class Game {
         this.currentState = RoundState.FinalizingVotes;
         break;
       case RoundState.FinalizingVotes:
-        this.player.direction = this.chooseDirection();
         this.currentState = RoundState.PlayerLeavingRoom;
+        this.player.direction = this.chooseDirection();
         break;
       case RoundState.PlayerLeavingRoom:
+        this.currentState = RoundState.PlayerDoingRoomEntry;
         this.nextRound();
         break;
+      case RoundState.PlayerDoingRoomEntry:
+        this.currentState = RoundState.PlayerMovingToCenter;
+        break;
       case RoundState.PlayerMovingToCenter:
+        this.currentState = RoundState.WaitingForVotes;
         this.startRound();
         break;
       case RoundState.GameOver:
+        this.currentState = RoundState.WaitingForVotes;
         this.resetGame();
         this.startRound();
         break;
@@ -172,41 +178,19 @@ export default class Game {
     this.twitch.reset();
     this.player.reset();
     this.resetCounts();
-    this.currentState = RoundState.WaitingForVotes;
   }
 
   // Advance the game to the next voting round
   nextRound() {
-    if (!this.map.playerRoom || !this.player.direction) throw new Error('Missing expected properties');
-    this.map.playerRoom = this.map.getAdjacentRoom(this.map.playerRoom.x, this.map.playerRoom.y, this.player.direction);
-    this.map.playerRoom?.onPlayerEnter();
     this.moves.value--;
     if (this.moves.value <= 0) {
       this.loseGame();
       return;
     }
 
-    // Position the player on the opposite side of where they exited the last room
-    switch (this.player.direction) {
-      case 'up':
-        this.player.x = this.width * 0.5 - this.player.width * 0.5;
-        this.player.y = this.height - this.player.height - this.marginY;
-        break;
-      case 'down':
-        this.player.x = this.width * 0.5 - this.player.width * 0.5;
-        this.player.y = this.marginY;
-        break;
-      case 'left':
-        this.player.x = this.width - this.player.width - this.marginX;
-        this.player.y = this.height * 0.5 - this.player.height * 0.5;
-        break;
-      case 'right':
-        this.player.x = this.marginX;
-        this.player.y = this.height * 0.5 - this.player.height * 0.5;
-        break;
-    }
-
-    this.currentState = RoundState.PlayerMovingToCenter;
+    if (!this.map.playerRoom || !this.player.direction) throw new Error('Missing expected properties');
+    this.map.playerRoom = this.map.getAdjacentRoom(this.map.playerRoom.x, this.map.playerRoom.y, this.player.direction);
+    this.map.playerRoom?.onPlayerEnter();
   }
 
   // Reset directional count votes to 0
