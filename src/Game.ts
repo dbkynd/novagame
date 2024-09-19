@@ -116,7 +116,7 @@ export default class Game {
   update(deltaTime: number) {
     this.roundTimer += deltaTime;
 
-    this.map.update();
+    this.map.update(deltaTime);
     this.player.update(deltaTime);
     this.timer.value = 0;
 
@@ -189,6 +189,7 @@ export default class Game {
     }
 
     if (!this.map.playerRoom || !this.player.direction) throw new Error('Missing expected properties');
+    this.map.playerRoom.onPlayerExit();
     this.map.playerRoom = this.map.getAdjacentRoom(this.map.playerRoom.x, this.map.playerRoom.y, this.player.direction);
     this.map.playerRoom?.onPlayerEnter();
   }

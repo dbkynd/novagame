@@ -6,8 +6,7 @@ export default class Player {
   y = 0;
   vx = 0;
   vy = 0;
-  centerX: number;
-  centerY: number;
+  center: { x: number; y: number };
   width = 100;
   height = 100;
   direction: Direction | null = null;
@@ -20,11 +19,14 @@ export default class Player {
   staggerFrames = 10;
   margin = 0;
   target: { x: number; y: number } | null = null;
+  atTarget = false;
 
   constructor(game: Game) {
     this.game = game;
-    this.centerX = this.game.width * 0.5 - this.width * 0.5;
-    this.centerY = this.game.height * 0.5 - this.height * 0.5;
+    this.center = {
+      x: this.game.width * 0.5 - this.width * 0.5,
+      y: this.game.height * 0.5 - this.height * 0.5,
+    };
     this.reset();
   }
 
@@ -46,25 +48,24 @@ export default class Player {
     } else {
       ctx.strokeStyle = 'blue';
       ctx.strokeRect(this.x, this.y, this.width, this.height);
-      if (this.target) {
-        ctx.fillStyle = 'teal';
-        ctx.beginPath();
-        ctx.arc(this.target.x, this.target.y, 5, 0, Math.PI * 2);
-        ctx.fill();
-      }
     }
   }
 
   update(deltaTime: number) {
     const movementThreshold = (this.speed * deltaTime) / 1000;
 
-    if (this.game.currentState === RoundState.PlayerMovingToCenter) {
-      const reachedCenterX = Math.abs(this.x - this.centerX) < movementThreshold;
-      const reachedCenterY = Math.abs(this.y - this.centerY) < movementThreshold;
-      if (reachedCenterX && reachedCenterY) {
+    const target = this.target || this.center;
+    const reachedX = Math.abs(this.x - target.x) < movementThreshold;
+    const reachedY = Math.abs(this.y - target.y) < movementThreshold;
+
+    if (reachedX && reachedY) {
+      this.atTarget = true;
+      if (this.game.currentState === RoundState.PlayerMovingToCenter) {
         this.game.transitionToNextState();
         return;
       }
+    } else {
+      this.atTarget = false;
     }
 
     switch (this.direction) {
@@ -92,6 +93,17 @@ export default class Player {
         this.vx = 0;
         this.vy = 0;
         this.frameY = 0;
+    }
+
+    if (
+      this.game.currentState === RoundState.PlayerMovingToCenter ||
+      this.game.currentState == RoundState.PlayerDoingRoomEntry
+    ) {
+      const dx = target.x - this.x;
+      const dy = target.y - this.y;
+      const angle = Math.atan2(dy, dx);
+      this.vx = Math.cos(angle);
+      this.vy = Math.sin(angle);
     }
 
     this.x += (this.vx * this.speed * deltaTime) / 1000;

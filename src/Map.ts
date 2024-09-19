@@ -221,9 +221,10 @@ export default class Map {
     if (this.mapCtx) this.drawMiniMap(this.mapCtx); // Draw the minimap
   }
 
-  update() {
-    // Map visibility
+  update(deltaTime: number) {
     if (this.playerRoom) {
+      this.playerRoom.update(deltaTime);
+      // Map visibility
       this.playerRoom.visited = true;
       // "discover" adjacent rooms that have doors
       const up = this.getAdjacentRoom(this.playerRoom.x, this.playerRoom.y, 'up');

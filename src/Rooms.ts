@@ -83,6 +83,10 @@ export abstract class Room {
         break;
     }
   }
+
+  onPlayerExit() {}
+
+  update(deltaTime: number) {}
 }
 
 export class BasicRoom extends Room {
@@ -95,7 +99,7 @@ export class BasicRoom extends Room {
 
   override onPlayerEnter() {
     super.onPlayerEnter();
-    this.game.transitionToNextState();
+    this.game.transitionToNextState(); // No special room logic - transition to PlayerMovingToCenter
   }
 }
 
@@ -116,14 +120,44 @@ export class GoalRoom extends Room {
 export class LitterRoom extends Room {
   name = 'litter_room';
   image = document.getElementById('room_image') as HTMLImageElement;
-  override visitedColor = 'yellow';
+  override undiscoveredColor = '#8a7e05';
+  override discoveredColor = '#c5b406';
+  override visitedColor = '#f3de0a';
+  litterBox = { x: 300, y: 500 };
+  reachedLitterBox = false;
 
   constructor(game: Game, x: number, y: number) {
     super(game, x, y);
   }
 
-  override onPlayerEnter() {
-    super.onPlayerEnter();
-    this.game.transitionToNextState();
+  override draw(ctx: CanvasRenderingContext2D) {
+    super.draw(ctx);
+    ctx.fillStyle = 'purple';
+    ctx.beginPath();
+    ctx.arc(this.litterBox.x, this.litterBox.y, 10, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  override update(deltaTime: number) {
+    if (!this.reachedLitterBox) {
+      const player = this.game.player;
+      // Set the player to move toward the litter box
+      player.target = this.litterBox;
+      if (player.atTarget) {
+        player.target = null;
+        this.reachedLitterBox = true;
+        const sound = document.getElementById('litterbox_sound') as HTMLAudioElement;
+        const clone = sound.cloneNode() as HTMLAudioElement;
+        clone.volume = this.game.audioVolume;
+        clone.play();
+        setTimeout(() => {
+          this.game.transitionToNextState(); // Transition to PlayerMovingToCenter
+        }, 1000);
+      }
+    }
+  }
+
+  override onPlayerExit() {
+    this.reachedLitterBox = false;
   }
 }
