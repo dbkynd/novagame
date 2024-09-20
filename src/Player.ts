@@ -11,11 +11,11 @@ export default class Player {
   height = 100;
   direction: Direction | null = null;
   speed = 100;
-  image = document.getElementById('cat_icon_image') as HTMLImageElement;
-  spriteWidth = 112;
-  spriteHeight = 112;
+  image = document.getElementById('cat_sprites') as HTMLImageElement;
+  spriteWidth = 100;
+  spriteHeight = 100;
   frameY = 0;
-  maxFrames = 6;
+  maxFrames = 0;
   staggerFrames = 10;
   margin = 0;
   target: { x: number; y: number } | null = null;
