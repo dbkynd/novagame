@@ -57,10 +57,7 @@ export default class Map {
     const playerStartY = Math.floor(Math.random() * (this.gridSizeY - 2) + 1);
     const playerRoom = new BasicRoom(this.game, playerStartX, playerStartY);
     // The player room starts with all 4 doors
-    playerRoom.doors.up = true;
-    playerRoom.doors.down = true;
-    playerRoom.doors.left = true;
-    playerRoom.doors.right = true;
+    playerRoom.doors = { up: true, down: true, left: true, right: true };
     this.grid[playerStartY][playerStartX] = playerRoom;
     this.playerRoom = this.grid[playerStartY][playerStartX];
   }
@@ -70,6 +67,7 @@ export default class Map {
     for (let y = 0; y < this.gridSizeY; y++) {
       for (let x = 0; x < this.gridSizeX; x++) {
         if (this.grid[y][x]) continue; // Skip any existing rooms
+        // Select randomly from the available (non-goal) rooms
         const rooms = [BasicRoom, LitterRoom];
         const roomIndex = Math.floor(Math.random() * rooms.length);
         this.grid[y][x] = new rooms[roomIndex](this.game, x, y);
